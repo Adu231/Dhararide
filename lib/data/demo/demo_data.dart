@@ -37,7 +37,7 @@ class DemoData {
   );
 
   // Demo Drivers
-  static const DriverModel demoDriver = DriverModel(
+  static final DriverModel demoDriver = DriverModel(
     id: 'drv_01',
     userId: 'usr_driv_01',
     name: 'Ramesh Shinde',
@@ -49,6 +49,43 @@ class DemoData {
     rating: 4.9,
     totalRides: 142,
     totalEarnings: 3840.0,
+    currentLatitude: 18.1870,
+    currentLongitude: 76.0415,
+    lastLocationUpdate: DateTime.now(),
+  );
+
+  static final DriverModel demoDriver2 = DriverModel(
+    id: 'drv_03',
+    userId: 'usr_driv_03',
+    name: 'Santosh Gaikwad',
+    phone: '9822345678',
+    autoNumber: 'MH-25-BK-1102',
+    upiId: 'santosh.auto@upi',
+    verificationStatus: DriverVerificationStatus.approved,
+    availability: DriverAvailability.online,
+    rating: 4.8,
+    totalRides: 98,
+    totalEarnings: 2450.0,
+    currentLatitude: 18.1885,
+    currentLongitude: 76.0445,
+    lastLocationUpdate: DateTime.now(),
+  );
+
+  static final DriverModel demoDriver3 = DriverModel(
+    id: 'drv_04',
+    userId: 'usr_driv_04',
+    name: 'Sachin More',
+    phone: '9765432109',
+    autoNumber: 'MH-25-CY-7788',
+    upiId: 'sachin.more@oksbi',
+    verificationStatus: DriverVerificationStatus.approved,
+    availability: DriverAvailability.online,
+    rating: 4.7,
+    totalRides: 64,
+    totalEarnings: 1820.0,
+    currentLatitude: 18.1815,
+    currentLongitude: 76.0375,
+    lastLocationUpdate: DateTime.now(),
   );
 
   static const DriverModel demoPendingDriver = DriverModel(
@@ -63,6 +100,8 @@ class DemoData {
     rating: 4.5,
     totalRides: 0,
     totalEarnings: 0.0,
+    currentLatitude: 18.1925,
+    currentLongitude: 76.0515,
   );
 
   // Popular Places in Dharashiv

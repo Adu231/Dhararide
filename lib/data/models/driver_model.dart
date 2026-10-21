@@ -14,6 +14,10 @@ class DriverModel {
   final int totalRides;
   final double totalEarnings;
   final String? profileImage;
+  final double? currentLatitude;
+  final double? currentLongitude;
+  final DateTime? lastLocationUpdate;
+  final String? h3Index;
   final String createdAt;
 
   const DriverModel({
@@ -30,6 +34,10 @@ class DriverModel {
     this.totalRides = 0,
     this.totalEarnings = 0.0,
     this.profileImage,
+    this.currentLatitude,
+    this.currentLongitude,
+    this.lastLocationUpdate,
+    this.h3Index,
     this.createdAt = '2026-09-25',
   });
 
@@ -47,6 +55,10 @@ class DriverModel {
     int? totalRides,
     double? totalEarnings,
     String? profileImage,
+    double? currentLatitude,
+    double? currentLongitude,
+    DateTime? lastLocationUpdate,
+    String? h3Index,
     String? createdAt,
   }) {
     return DriverModel(
@@ -63,6 +75,10 @@ class DriverModel {
       totalRides: totalRides ?? this.totalRides,
       totalEarnings: totalEarnings ?? this.totalEarnings,
       profileImage: profileImage ?? this.profileImage,
+      currentLatitude: currentLatitude ?? this.currentLatitude,
+      currentLongitude: currentLongitude ?? this.currentLongitude,
+      lastLocationUpdate: lastLocationUpdate ?? this.lastLocationUpdate,
+      h3Index: h3Index ?? this.h3Index,
       createdAt: createdAt ?? this.createdAt,
     );
   }
