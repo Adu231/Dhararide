@@ -218,8 +218,6 @@ class H3Service {
   // where the C dynamic library (libh3.so/h3.dll) is not loaded into the process.
   // ---------------------------------------------------------------------------
 
-  static const double _earthRadiusKm = 6371.0088;
-
   String _fallbackGeoToCell(double lat, double lon, int resolution) {
     // Hexagonal grid spacing proportional to resolution
     // Res 8 approx spacing ~0.0041 degrees (~460m)

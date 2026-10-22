@@ -78,6 +78,11 @@ class AppStrings {
   String get finalFare => isMr ? 'अंतिम ठरलेले भाडे' : 'Final Agreed Fare';
   String get mutualFareNote => isMr ? 'अंतिम भाडे ग्राहक आणि चालक यांच्यात आपापसात ठरवता येते.' : 'Final fare can be mutually agreed between customer and driver.';
   String get noCommissionNote => isMr ? '0% कमिशन प्लॅटफॉर्म - थेट चालकाला पैसे द्या.' : '0% commission platform - 100% fare goes to the driver.';
+  String get searchPlaces => isMr ? 'धाराशिवमधील ठिकाण शोधा...' : 'Search landmarks in Dharashiv...';
+  String get useCurrentLocation => isMr ? 'सध्याचे स्थान वापरा' : 'Use Current Location';
+  String get swapLocations => isMr ? 'स्थान बदला' : 'Swap Locations';
+  String get locationPermissionDisabled => isMr ? 'स्थान परवानगी बंद आहे • चालू करा' : 'Location permission disabled • Tap to enable';
+  String get directToDriver => isMr ? '१००% रक्कम चालकाला' : '100% to Driver';
 
   // Status & Searching
   String get searchingNearby => isMr ? 'जवळपासच्या रिक्षांचा शोध घेत आहोत...' : 'Searching for nearby auto-rickshaws...';

@@ -33,6 +33,26 @@ class PopularPlaceModel {
 
   String getName(bool isMr) => isMr ? nameMr : nameEn;
 
+  String getCategoryName(bool isMr) {
+    if (!isMr) return category;
+    switch (category) {
+      case 'Bus Stand':
+        return 'बस स्थानक';
+      case 'Railway Station':
+        return 'रेल्वे स्टेशन';
+      case 'Hospital':
+        return 'रुग्णालय';
+      case 'Market':
+        return 'बाजारपेठ';
+      case 'College':
+        return 'महाविद्यालय';
+      case 'Temple':
+        return 'मंदिर';
+      default:
+        return category;
+    }
+  }
+
   LocationPointModel toLocationPoint() {
     return LocationPointModel(
       address: address,
