@@ -31,7 +31,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
 
   PopularPlaceModel _pickup = DemoData.popularPlaces[0];
   PopularPlaceModel _destination = DemoData.popularPlaces[2];
-  String _selectedCategory = 'All';
 
   @override
   void initState() {
@@ -284,11 +283,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             d.verificationStatus == DriverVerificationStatus.approved)
         .toList();
 
-    // Filter popular places for category filter
-    final filteredPlaces = _selectedCategory == 'All'
-        ? DemoData.popularPlaces
-        : DemoData.popularPlaces.where((p) => p.category == _selectedCategory).toList();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -318,7 +312,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           // -------------------------------------------------------------
           Positioned(
             right: 16,
-            top: 130,
+            top: 74,
             child: Column(
               children: [
                 _buildMapControlBtn(
@@ -344,7 +338,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           ),
 
           // -------------------------------------------------------------
-          // 3. COMPACT FLOATING HEADER WITH BRANDING & CONTROLS
+          // 3. SLEEK FLOATING ISLAND BRANDING & QUICK ACTIONS
           // -------------------------------------------------------------
           Positioned(
             top: 0,
@@ -357,124 +351,153 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          const AutoRickshawIcon(size: 28),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  spacing: 5,
-                                  children: [
-                                    const Text(
-                                      BrandConfig.appName,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.textPrimary,
-                                        letterSpacing: -0.3,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                      decoration: BoxDecoration(
-                                        color: BrandConfig.accentYellow,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        isMr ? 'धाराशिव' : 'Dharashiv',
-                                        style: const TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w800,
-                                          color: BrandConfig.textPrimaryBlack,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 1),
-                                Text(
-                                  isMr ? 'स्थानिक ऑटो बुकिंग प्लॅटफॉर्म' : 'Local Auto Platform',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.textMuted,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-
-                          // Language Toggle Pill
-                          InkWell(
-                            onTap: () => ref.read(languageProvider.notifier).toggleLanguage(),
-                            borderRadius: BorderRadius.circular(20),
+                    Row(
+                      children: [
+                        // Left: Sleek Floating Brand Capsule (comfortably sized)
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              height: 44,
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryLight,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.primary, width: 1.2),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: AppColors.border.withOpacity(0.8)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.language, size: 13, color: AppColors.textPrimary),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    isMr ? 'English' : 'मराठी',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
+                                  const AutoRickshawIcon(size: 24),
+                                  const SizedBox(width: 6),
+                                  const Flexible(
+                                    child: Text(
+                                      BrandConfig.appName,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textPrimary,
+                                        letterSpacing: -0.3,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: BrandConfig.accentYellow,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      isMr ? 'धाराशिव' : 'Dharashiv',
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: BrandConfig.textPrimaryBlack,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
+                        ),
+                        const SizedBox(width: 8),
 
-                          // Profile Shortcut
-                          InkWell(
-                            onTap: () => context.go('/customer/profile'),
-                            borderRadius: BorderRadius.circular(16),
-                            child: CircleAvatar(
-                              radius: 16,
-                              backgroundColor: AppColors.primary,
-                              child: Text(
-                                (user?.name.isNotEmpty == true) ? user!.name[0].toUpperCase() : 'C',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                        // Right: Floating Language Pill & Profile Shortcut
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Language Toggle Pill
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => ref.read(languageProvider.notifier).toggleLanguage(),
+                                borderRadius: BorderRadius.circular(22),
+                                child: Container(
+                                  height: 44,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(22),
+                                    border: Border.all(color: AppColors.border.withOpacity(0.8)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.language, size: 16, color: AppColors.textPrimary),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        isMr ? 'English' : 'मराठी',
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 8),
+
+                            // Profile Avatar
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => context.go('/customer/profile'),
+                                borderRadius: BorderRadius.circular(22),
+                                child: Container(
+                                  height: 44,
+                                  width: 44,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppColors.border.withOpacity(0.8)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: CircleAvatar(
+                                      radius: 17,
+                                      backgroundColor: AppColors.primary,
+                                      child: Text(
+                                        (user?.name.isNotEmpty == true) ? user!.name[0].toUpperCase() : 'C',
+                                        style: const TextStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
 
                     // Graceful Location Permission Banner (shown if permission not granted)
@@ -539,10 +562,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           // -------------------------------------------------------------
           DraggableScrollableSheet(
             initialChildSize: 0.44,
-            minChildSize: 0.36,
+            minChildSize: 0.30,
             maxChildSize: 0.88,
             snap: true,
-            snapSizes: const [0.36, 0.44, 0.88],
+            snapSizes: const [0.30, 0.44, 0.88],
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
@@ -743,17 +766,27 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                             ),
                           ),
 
-                          // Right Swap Button
+                          // Right Swap Button (Clearly visible with subtle accent and shadow)
                           Container(
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.primaryLight,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: AppColors.primary, width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.swap_vert, size: 20, color: AppColors.textPrimary),
+                              icon: const Icon(Icons.swap_vert, size: 22, color: AppColors.textPrimary),
                               tooltip: strings.swapLocations,
                               onPressed: _swapLocations,
+                              padding: EdgeInsets.zero,
                             ),
                           ),
                         ],
@@ -895,13 +928,25 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Popular Places in Dharashiv (Redesigned with NO CLIPPED TEXT)
+                    // Recently Visited Places Section (Replaced Popular Places as requested)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: BrandConfig.accentYellow.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.history_rounded,
+                            size: 18,
+                            color: BrandConfig.textPrimaryBlack,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            strings.popularPlaces,
+                            strings.recentlyVisitedPlaces,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
@@ -911,50 +956,35 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '${DemoData.popularPlaces.length} ${isMr ? 'ठिकाणे' : 'places'}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textMuted,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Text(
+                            isMr ? 'अलीकडील' : 'Recent',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-
-                    // Category Filter Pills
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildCategoryChip('All', isMr ? 'सर्व' : 'All'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('Bus Stand', isMr ? 'बस स्थानक' : 'Bus Stand'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('Railway Station', isMr ? 'रेल्वे' : 'Railway'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('Hospital', isMr ? 'रुग्णालय' : 'Hospital'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('Market', isMr ? 'बाजारपेठ' : 'Market'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('College', isMr ? 'महाविद्यालय' : 'College'),
-                          const SizedBox(width: 8),
-                          _buildCategoryChip('Temple', isMr ? 'मंदिर' : 'Temple'),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 12),
 
-                    // Redesigned Popular Place Cards (consistent sizing, readable labels, no clipped text)
+                    // Recently Visited Place Cards
                     SizedBox(
-                      height: 126,
+                      height: 122,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        itemCount: filteredPlaces.length,
+                        itemCount: DemoData.popularPlaces.length,
                         separatorBuilder: (context, index) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
-                          final place = filteredPlaces[index];
+                          final place = DemoData.popularPlaces[index];
                           final isSelected = place.id == _destination.id;
                           final categoryColor = _getCategoryColor(place.category);
 
@@ -979,8 +1009,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.03),
-                                    blurRadius: 6,
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
                                 ],
@@ -998,38 +1028,36 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                         ),
                                         child: Icon(
                                           _getCategoryIcon(place.category),
-                                          size: 16,
+                                          size: 15,
                                           color: categoryColor,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Expanded(
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.surface,
-                                            borderRadius: BorderRadius.circular(6),
+                                        child: Text(
+                                          isMr ? 'अलीकडील ड्रॉप' : 'Recent drop',
+                                          style: const TextStyle(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textMuted,
                                           ),
-                                          child: Text(
-                                            place.getCategoryName(isMr),
-                                            style: const TextStyle(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.center,
-                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
+                                      if (isSelected)
+                                        const Icon(
+                                          Icons.check_circle,
+                                          size: 15,
+                                          color: AppColors.primaryDark,
+                                        ),
                                     ],
                                   ),
                                   const Spacer(),
                                   Text(
                                     place.getName(isMr),
                                     style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 12.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textPrimary,
                                       height: 1.25,
@@ -1037,7 +1065,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 3),
                                   Text(
                                     place.address,
                                     style: const TextStyle(
@@ -1094,8 +1122,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     Color? iconColor,
   }) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
@@ -1109,37 +1137,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, size: 20, color: iconColor ?? BrandConfig.textPrimaryBlack),
+        icon: Icon(icon, size: 22, color: iconColor ?? BrandConfig.textPrimaryBlack),
         onPressed: onTap,
         padding: EdgeInsets.zero,
         tooltip: tooltip,
-      ),
-    );
-  }
-
-  Widget _buildCategoryChip(String categoryKey, String label) {
-    final isSelected = _selectedCategory == categoryKey;
-    return InkWell(
-      onTap: () => setState(() => _selectedCategory = categoryKey),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? BrandConfig.accentYellow : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? BrandConfig.accentYellowDark : AppColors.border,
-            width: isSelected ? 1.2 : 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? BrandConfig.textPrimaryBlack : AppColors.textSecondary,
-          ),
-        ),
       ),
     );
   }

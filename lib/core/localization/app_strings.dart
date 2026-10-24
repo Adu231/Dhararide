@@ -74,6 +74,7 @@ class AppStrings {
   String get destinationLocation => isMr ? 'गंतव्य स्थान (ड्रॉप)' : 'Destination (Drop)';
   String get bookAuto => isMr ? 'ऑटो बुक करा' : 'Book Auto';
   String get popularPlaces => isMr ? 'धाराशिवमधील प्रसिद्ध ठिकाणे' : 'Popular Places in Dharashiv';
+  String get recentlyVisitedPlaces => isMr ? 'अलीकडे भेट दिलेली ठिकाणे' : 'Recently Visited Places';
   String get suggestedFare => isMr ? 'अंदाजित भाडे' : 'Suggested Fare';
   String get finalFare => isMr ? 'अंतिम ठरलेले भाडे' : 'Final Agreed Fare';
   String get mutualFareNote => isMr ? 'अंतिम भाडे ग्राहक आणि चालक यांच्यात आपापसात ठरवता येते.' : 'Final fare can be mutually agreed between customer and driver.';
