@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/brand/brand_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/responsive_container.dart';
 import '../../data/session/session_manager.dart';
@@ -40,34 +41,83 @@ class CustomerShell extends ConsumerWidget {
     final selectedIndex = _calculateSelectedIndex(context);
 
     return ResponsiveContainer(
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (idx) => _onItemTapped(idx, context),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary,
-        elevation: 4,
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
-            label: strings.tabHome,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(
+            top: BorderSide(color: Color(0xFFE9ECEF), width: 1),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.history_outlined),
-            selectedIcon: const Icon(Icons.history),
-            label: strings.tabRides,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: NavigationBarTheme(
+            data: NavigationBarThemeData(
+              indicatorColor: BrandConfig.accentYellow,
+              backgroundColor: Colors.white,
+              elevation: 0,
+              height: 64,
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: BrandConfig.textPrimaryBlack,
+                  );
+                }
+                return const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                );
+              }),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return const IconThemeData(
+                    color: BrandConfig.textPrimaryBlack,
+                    size: 22,
+                  );
+                }
+                return const IconThemeData(
+                  color: AppColors.textSecondary,
+                  size: 22,
+                );
+              }),
+            ),
+            child: NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (idx) => _onItemTapped(idx, context),
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: strings.tabHome,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.history_outlined),
+                  selectedIcon: const Icon(Icons.history_rounded),
+                  label: strings.tabRides,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.notifications_none_rounded),
+                  selectedIcon: const Icon(Icons.notifications_rounded),
+                  label: strings.tabNotifications,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.person_outline_rounded),
+                  selectedIcon: const Icon(Icons.person_rounded),
+                  label: strings.tabProfile,
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.notifications_outlined),
-            selectedIcon: const Icon(Icons.notifications),
-            label: strings.tabNotifications,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
-            label: strings.tabProfile,
-          ),
-        ],
+        ),
       ),
       child: child,
     );

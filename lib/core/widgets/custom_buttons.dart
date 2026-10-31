@@ -30,6 +30,7 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: AppColors.primary.withOpacity(0.4),
           disabledForegroundColor: AppColors.textPrimary.withOpacity(0.4),
           elevation: 1,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -45,17 +46,22 @@ class PrimaryButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
                     Icon(icon, size: 20, color: AppColors.textPrimary),
                     const SizedBox(width: 8),
                   ],
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                  Flexible(
+                    child: Text(
+                      text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -88,6 +94,7 @@ class SecondaryButton extends StatelessWidget {
         onPressed: onClick,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           side: BorderSide(color: borderColor ?? AppColors.border, width: 1.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -95,17 +102,22 @@ class SecondaryButton extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
               Icon(icon, size: 18, color: AppColors.textPrimary),
               const SizedBox(width: 8),
             ],
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],

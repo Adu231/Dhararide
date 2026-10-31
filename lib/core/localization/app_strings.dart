@@ -62,12 +62,12 @@ class AppStrings {
   String get password => isMr ? 'पासवर्ड' : 'Password';
   String get autoNumber => isMr ? 'ऑटो गाडी नंबर (उदा. MH-25-AB-1234)' : 'Auto Vehicle Number (e.g. MH-25-AB-1234)';
   String get upiId => isMr ? 'UPI ID (उदा. driver@upi)' : 'UPI ID (e.g. driver@upi)';
-  String get loginDemoHint => isMr ? 'डेमो लॉग इन (खालील खात्यावर टॅप करा)' : 'Demo Quick Login (tap an account below)';
-  String get demoCustomerBtn => isMr ? 'डेमो ग्राहक' : 'Demo Customer';
-  String get demoDriverBtn => isMr ? 'डेमो चालक' : 'Demo Driver';
-  String get demoAdminBtn => isMr ? 'डेमो ॲडमिन' : 'Demo Admin';
+  String get loginDemoHint => isMr ? 'लॉग इन (खालील खात्यावर टॅप करा)' : 'Quick Login (tap an account below)';
+  String get demoCustomerBtn => isMr ? 'ग्राहक' : 'Customer';
+  String get demoDriverBtn => isMr ? 'चालक' : 'Driver';
+  String get demoAdminBtn => isMr ? 'ॲडमिन' : 'Admin';
 
-  // Customer Booking
+  // Customer Booking & Ride Tracking
   String get greetingHello => isMr ? 'नमस्कार,' : 'Hello,';
   String get whereToGo => isMr ? 'तुम्हाला कुठे जायचे आहे?' : 'Where do you want to go?';
   String get pickupLocation => isMr ? 'पिकअप स्थान' : 'Pickup Location';
@@ -84,6 +84,49 @@ class AppStrings {
   String get swapLocations => isMr ? 'स्थान बदला' : 'Swap Locations';
   String get locationPermissionDisabled => isMr ? 'स्थान परवानगी बंद आहे • चालू करा' : 'Location permission disabled • Tap to enable';
   String get directToDriver => isMr ? '१००% रक्कम चालकाला' : '100% to Driver';
+
+  // Where is my driver & Navigation
+  String get whereIsMyDriver => isMr ? 'माझा ड्रायव्हर कुठे आहे?' : 'Where is my driver?';
+  String get driverLocationUnavailable => isMr ? 'चालकाचे थेट स्थान अद्याप उपलब्ध नाही' : 'Driver location is not available yet';
+  String get driverLocationUnavailableDesc => isMr
+      ? 'चालक लवकरच पिकअप स्थानावर पोहोचेल. तुम्ही चालकाला थेट कॉल करू शकता किंवा पिकअप पत्ता पाहू शकता.'
+      : 'Driver will arrive at pickup shortly. You can call the driver directly or view pickup location.';
+  String get navigateToPickup => isMr ? 'पिकअप स्थानाकडे नेव्हिगेट करा' : 'Navigate to Pickup';
+  String get navigateToDestination => isMr ? 'ड्रॉप स्थानाकडे नेव्हिगेट करा' : 'Navigate to Drop';
+  String get estimatedFare => isMr ? 'अंदाजित भाडे' : 'Estimated Fare';
+  String get reviewBooking => isMr ? 'राइड आढावा आणि खात्री' : 'Review & Confirm Ride';
+  String get confirmBooking => isMr ? 'ऑटो बुक करा' : 'Confirm & Request Auto';
+  String get openLocationSettings => isMr ? 'लोकेशन सेटिंग उघडा' : 'Open Location Settings';
+  String get openAppSettings => isMr ? 'ॲप सेटिंग उघडा' : 'Open App Settings';
+  String get gpsDisabledTitle => isMr ? 'GPS बंद आहे' : 'GPS Turned Off';
+  String get gpsDisabledDesc => isMr ? 'तुमच्या फोनचे GPS बंद आहे. कृपया चालू करा.' : 'Device location is turned off. Please turn on GPS.';
+  String get searchingPlaces => isMr ? 'ठिकाणे शोधत आहोत...' : 'Searching places...';
+  String get retryRouting => isMr ? 'मार्ग पुन्हा मोजा' : 'Retry Route';
+  String get roadDistance => isMr ? 'रस्त्यावरील अंतर' : 'Road Distance';
+  String get measuringRoadDistance => isMr ? 'रस्त्यावरील मार्ग मोजत आहोत...' : 'Calculating road route...';
+  String get offlineRouteEstimate => isMr ? 'ऑफलाइन अंदाजित मार्ग' : 'Offline Route Estimate';
+
+  // Ride Statuses
+  String get statusSearching => isMr ? 'ऑटो शोधत आहोत...' : 'Searching for Auto...';
+  String get statusDriverAssigned => isMr ? 'चालक नियुक्त झाला' : 'Driver Assigned';
+  String get statusDriverArriving => isMr ? 'चालक येत आहे' : 'Driver Coming to Pickup';
+  String get statusDriverArrived => isMr ? 'चालक पोहोचला' : 'Driver Arrived';
+  String get statusRideStarted => isMr ? 'प्रवास सुरू आहे' : 'Ride in Progress';
+  String get statusRideCompleted => isMr ? 'प्रवास पूर्ण झाला' : 'Ride Completed';
+  String get statusCancelled => isMr ? 'प्रवास रद्द झाला' : 'Ride Cancelled';
+
+  // Booking Review & Calculations
+  String get bookingConfirmation => isMr ? 'राइड आढावा आणि खात्री' : 'Review & Confirm Ride';
+  String get confirmAndBook => isMr ? 'बुकिंग निश्चित करा' : 'Confirm Booking';
+  String get pleaseSelectBoth => isMr ? 'कृपया पिकअप आणि ड्रॉप दोन्ही ठिकाणे निवडा.' : 'Please select both pickup and destination locations.';
+  String get selectSamePlaceError => isMr ? 'पिकअप आणि ड्रॉप ठिकाण एकच असू शकत नाही.' : 'Pickup and destination cannot be the same.';
+  String get bookingInProgress => isMr ? 'बुकिंग प्रक्रिया सुरू आहे...' : 'Processing booking...';
+  String get estimatedDistance => isMr ? 'अंदाजित अंतर' : 'Estimated Distance';
+  String get estimatedTime => isMr ? 'अंदाजित वेळ' : 'Estimated Time';
+  String get baseFareLabel => isMr ? 'बेस भाडे (पहिले १.५ किमी)' : 'Base Fare (First 1.5 km)';
+  String get distanceFareLabel => isMr ? 'अंतर भाडे' : 'Distance Fare';
+  String get platformFee => isMr ? 'प्लॅटफॉर्म फी' : 'Platform Fee';
+  String get zeroPlatformFee => isMr ? '₹० (०% कमिशन)' : '₹0 (0% Commission)';
 
   // Status & Searching
   String get searchingNearby => isMr ? 'जवळपासच्या रिक्षांचा शोध घेत आहोत...' : 'Searching for nearby auto-rickshaws...';

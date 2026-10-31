@@ -46,6 +46,7 @@ enum RideStatus {
   searching,
   driverAccepted,
   driverArriving,
+  driverArrived,
   rideStarted,
   rideCompleted,
   cancelled;
@@ -55,13 +56,15 @@ enum RideStatus {
       case RideStatus.searching:
         return 'Searching Driver';
       case RideStatus.driverAccepted:
-        return 'Driver Accepted';
+        return 'Driver Assigned';
       case RideStatus.driverArriving:
         return 'Driver Arriving';
+      case RideStatus.driverArrived:
+        return 'Driver Arrived';
       case RideStatus.rideStarted:
-        return 'Ride in Progress';
+        return 'Ride Started';
       case RideStatus.rideCompleted:
-        return 'Completed';
+        return 'Ride Completed';
       case RideStatus.cancelled:
         return 'Cancelled';
     }

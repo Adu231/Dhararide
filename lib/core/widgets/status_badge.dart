@@ -23,6 +23,7 @@ class StatusBadge extends StatelessWidget {
         break;
       case RideStatus.driverAccepted:
       case RideStatus.driverArriving:
+      case RideStatus.driverArrived:
         bg = AppColors.info;
         break;
       case RideStatus.rideStarted:

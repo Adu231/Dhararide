@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,8 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/brand/brand_config.dart';
+import '../../core/localization/app_strings.dart';
 import '../../core/map/map_config.dart';
+import '../../core/services/fare_calculation_service.dart';
 import '../../core/services/location_service.dart';
+import '../../core/services/place_search_service.dart';
 import '../../core/services/routing_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/auto_rickshaw_icon.dart';
@@ -31,17 +35,37 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
 
   PopularPlaceModel _pickup = DemoData.popularPlaces[0];
   PopularPlaceModel _destination = DemoData.popularPlaces[2];
+  bool _isSubmitting = false;
+
+  RouteEstimateResult? _roadRoute;
+  bool _isLoadingRoute = false;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchRoadRoute();
+    });
   }
 
   @override
   void dispose() {
     _mapController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchRoadRoute() async {
+    final pickupLatLng = LatLng(_pickup.latitude, _pickup.longitude);
+    final destLatLng = LatLng(_destination.latitude, _destination.longitude);
+    setState(() => _isLoadingRoute = true);
+    final route = await _routingService.calculateRoadRoute(pickupLatLng, destLatLng);
+    if (mounted) {
+      setState(() {
+        _roadRoute = route;
+        _isLoadingRoute = false;
+      });
+    }
   }
 
   void _swapLocations() {
@@ -54,11 +78,50 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       LatLng(_pickup.latitude, _pickup.longitude),
       MapConfig.defaultZoom,
     );
+    _fetchRoadRoute();
   }
 
-  void _recenterMap() {
+  Future<void> _proceedToBooking() async {
+    if (_isSubmitting) return;
+
+    if (_pickup.id == _destination.id &&
+        _pickup.latitude == _destination.latitude &&
+        _pickup.longitude == _destination.longitude) {
+      final strings = ref.read(stringsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            strings.isMr
+                ? 'कृपया वेगळे पिकअप आणि ड्रॉप ठिकाण निवडा.'
+                : 'Pickup and destination cannot be the same landmark.',
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await context.push('/customer/fare-preview', extra: {
+        'pickup': _pickup.toLocationPoint(),
+        'destination': _destination.toLocationPoint(),
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  void _recenterMap() async {
     final locationState = ref.read(locationProvider);
-    final target = locationState.isGranted ? locationState.userLocation : LatLng(_pickup.latitude, _pickup.longitude);
+    if (!locationState.hasRealGps) {
+      await ref.read(locationProvider.notifier).requestAndFetchCurrentLocation();
+    }
+    final updated = ref.read(locationProvider);
+    final target = updated.hasRealGps ? updated.userLocation : LatLng(_pickup.latitude, _pickup.longitude);
     _mapController.move(target, MapConfig.defaultZoom);
   }
 
@@ -135,6 +198,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               LatLng(place.latitude, place.longitude),
               MapConfig.defaultZoom,
             );
+            _fetchRoadRoute();
           },
         );
       },
@@ -263,18 +327,17 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final isMr = strings.isMr;
     final allDrivers = ref.watch(driverRepositoryProvider);
     final locationState = ref.watch(locationProvider);
+    final fareService = ref.watch(fareCalculationServiceProvider);
 
     final pickupLatLng = LatLng(_pickup.latitude, _pickup.longitude);
     final destLatLng = LatLng(_destination.latitude, _destination.longitude);
 
-    // Calculate realistic route estimation using tortuosity service
-    final routeEstimate = _routingService.calculateEstimate(pickupLatLng, destLatLng);
+    // Dynamic Road-Route calculation (OSRM road geometry and distance in meters/km)
+    final effectiveRoute = _roadRoute ?? _routingService.calculateEstimate(pickupLatLng, destLatLng);
 
-    // Dynamic suggested fare calculation: base fare Rs 20 for first 1.5 km, then Rs 12/km
-    final calculatedFare = (routeEstimate.distanceKm <= 1.5)
-        ? 20.0
-        : (20.0 + (routeEstimate.distanceKm - 1.5) * BrandConfig.baseFarePerKm);
-    final roundedFare = (calculatedFare / 5).round() * 5.0; // round to nearest Rs 5
+    // Centralized Dynamic Fare Calculation (Base ₹20 up to 1.5 km, ₹12/km thereafter)
+    final fareBreakdown = fareService.calculateFare(distanceKm: effectiveRoute.distanceKm);
+    final roundedFare = fareBreakdown.totalFare;
 
     // Filter online and approved drivers to display on map
     final onlineDrivers = allDrivers
@@ -294,11 +357,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             child: DharashivMapWidget(
               pickup: pickupLatLng,
               destination: destLatLng,
-              userLocation: locationState.isGranted ? locationState.userLocation : null,
+              userLocation: locationState.hasRealGps ? locationState.userLocation : null,
               pickupLabel: _pickup.getName(isMr),
               destinationLabel: _destination.getName(isMr),
               nearbyDrivers: onlineDrivers,
-              routePolyline: routeEstimate.polylinePoints,
+              routePolyline: effectiveRoute.polylinePoints,
               isFullScreen: true,
               showControls: false,
               externalController: _mapController,
@@ -837,14 +900,20 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(color: AppColors.border),
                                       ),
-                                      child: Text(
-                                        '${routeEstimate.distanceKm} km • ~${routeEstimate.estimatedDurationMinutes}m',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
+                                      child: _isLoadingRoute
+                                          ? const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: BrandConfig.textPrimaryBlack),
+                                            )
+                                          : Text(
+                                              '${effectiveRoute.distanceKm} km${effectiveRoute.isRealRoadRoute ? ' (Road)' : ''} • ~${effectiveRoute.estimatedDurationMinutes}m',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
                                     ),
                                   ],
                                 ),
@@ -893,7 +962,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Yellow Primary Action: Book Auto Button
+                    // Yellow Primary Action: Book Auto Button with validation & duplicate protection
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: BrandConfig.accentYellow,
@@ -904,27 +973,31 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {
-                        context.push('/customer/fare-preview', extra: {
-                          'pickup': _pickup.toLocationPoint(),
-                          'destination': _destination.toLocationPoint(),
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.electric_rickshaw, size: 22, color: BrandConfig.textPrimaryBlack),
-                          const SizedBox(width: 8),
-                          Text(
-                            strings.bookAuto,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: BrandConfig.textPrimaryBlack,
+                      onPressed: _isSubmitting ? null : _proceedToBooking,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: BrandConfig.textPrimaryBlack,
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.electric_rickshaw, size: 22, color: BrandConfig.textPrimaryBlack),
+                                const SizedBox(width: 8),
+                                Text(
+                                  strings.bookAuto,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: BrandConfig.textPrimaryBlack,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                     const SizedBox(height: 20),
 
@@ -995,6 +1068,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                 LatLng(place.latitude, place.longitude),
                                 MapConfig.defaultZoom,
                               );
+                              _fetchRoadRoute();
                             },
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
@@ -1164,13 +1238,156 @@ class _PlaceSearchSheet extends ConsumerStatefulWidget {
 
 class _PlaceSearchSheetState extends ConsumerState<_PlaceSearchSheet> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
   String _searchQuery = '';
   String _filterCategory = 'All';
+  List<SearchPlaceResult> _remoteSearchResults = [];
+  bool _isSearching = false;
+  bool _isAcquiringGps = false;
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    final trimmed = query.trim();
+    setState(() {
+      _searchQuery = trimmed;
+    });
+
+    if (trimmed.isEmpty) {
+      setState(() {
+        _remoteSearchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () async {
+      try {
+        final results = await ref.read(placeSearchServiceProvider).searchPlaces(trimmed);
+        if (!mounted) return;
+        setState(() {
+          _remoteSearchResults = results;
+          _isSearching = false;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _remoteSearchResults = [];
+          _isSearching = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _handleUseCurrentLocation(AppStrings strings, bool isMr) async {
+    setState(() => _isAcquiringGps = true);
+    final notifier = ref.read(locationProvider.notifier);
+    final success = await notifier.requestAndFetchCurrentLocation();
+
+    if (!mounted) return;
+    setState(() => _isAcquiringGps = false);
+
+    final locState = ref.read(locationProvider);
+
+    if (success && locState.hasRealGps) {
+      final label = locState.readableAddress ?? (isMr ? 'सध्याचे स्थान (GPS)' : 'Current Location (GPS)');
+      final currentLocPlace = PopularPlaceModel(
+        id: 'user_current_location',
+        nameEn: locState.readableAddress ?? 'My Current Location (GPS)',
+        nameMr: locState.readableAddress ?? 'माझे सध्याचे स्थान (GPS)',
+        address: label,
+        category: 'Current Location',
+        latitude: locState.userLocation.latitude,
+        longitude: locState.userLocation.longitude,
+      );
+      widget.onSelected(currentLocPlace);
+      Navigator.pop(context);
+      return;
+    }
+
+    // Handle failure modes transparently
+    if (locState.permissionStatus == LocationPermissionStatus.serviceDisabled) {
+      _showGpsDisabledDialog(strings, isMr);
+    } else if (locState.permissionStatus == LocationPermissionStatus.permanentlyDenied) {
+      _showPermanentlyDeniedDialog(strings, isMr);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            locState.errorMessage ??
+                (isMr
+                    ? 'स्थान परवानगी नाकारली. कृपया खालील ठिकाण निवडा.'
+                    : 'Location permission denied. Please select a place below.'),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showGpsDisabledDialog(AppStrings strings, bool isMr) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings.gpsDisabledTitle),
+        content: Text(strings.gpsDisabledDesc),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isMr ? 'रद्द करा' : 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(locationProvider.notifier).openLocationSettings();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: BrandConfig.accentYellow),
+            child: Text(
+              strings.openLocationSettings,
+              style: const TextStyle(color: BrandConfig.textPrimaryBlack, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermanentlyDeniedDialog(AppStrings strings, bool isMr) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isMr ? 'स्थान परवानगी आवश्यक' : 'Location Permission Required'),
+        content: Text(
+          isMr
+              ? 'स्थान परवानगी कायमस्वरूपी नाकारली आहे. सध्याचे स्थान मिळवण्यासाठी कृपया ॲप सेटिंग्जमध्ये जाऊन परवानगी द्या.'
+              : 'Location permission is permanently denied. Please enable it in App Settings to detect your pickup location.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isMr ? 'रद्द करा' : 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(locationProvider.notifier).openAppSettings();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: BrandConfig.accentYellow),
+            child: Text(
+              strings.openAppSettings,
+              style: const TextStyle(color: BrandConfig.textPrimaryBlack, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   IconData _getCategoryIcon(String category) {
@@ -1215,8 +1432,10 @@ class _PlaceSearchSheetState extends ConsumerState<_PlaceSearchSheet> {
   Widget build(BuildContext context) {
     final strings = ref.watch(stringsProvider);
     final isMr = strings.isMr;
+    final locState = ref.watch(locationProvider);
 
-    final filteredPlaces = DemoData.popularPlaces.where((place) {
+    // Fallback/browsable curated landmarks
+    final filteredLandmarks = DemoData.popularPlaces.where((place) {
       final matchesCategory = _filterCategory == 'All' || place.category == _filterCategory;
       if (!matchesCategory) return false;
 
@@ -1233,7 +1452,7 @@ class _PlaceSearchSheetState extends ConsumerState<_PlaceSearchSheet> {
       color: Colors.white,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.82,
         child: Column(
           children: [
             const SizedBox(height: 10),
@@ -1278,195 +1497,354 @@ class _PlaceSearchSheetState extends ConsumerState<_PlaceSearchSheet> {
                 ],
               ),
             ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-          // Search Field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: strings.searchPlaces,
-                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                filled: true,
-                fillColor: AppColors.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                ),
-              ),
-              onChanged: (val) => setState(() => _searchQuery = val.trim()),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Category Chips in Search
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                _buildSearchChip('All', isMr ? 'सर्व' : 'All'),
-                const SizedBox(width: 8),
-                _buildSearchChip('Bus Stand', isMr ? 'बस स्थानक' : 'Bus Stand'),
-                const SizedBox(width: 8),
-                _buildSearchChip('Railway Station', isMr ? 'रेल्वे' : 'Railway'),
-                const SizedBox(width: 8),
-                _buildSearchChip('Hospital', isMr ? 'रुग्णालय' : 'Hospital'),
-                const SizedBox(width: 8),
-                _buildSearchChip('Market', isMr ? 'बाजार' : 'Market'),
-                const SizedBox(width: 8),
-                _buildSearchChip('College', isMr ? 'महाविद्यालय' : 'College'),
-                const SizedBox(width: 8),
-                _buildSearchChip('Temple', isMr ? 'मंदिर' : 'Temple'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Use Current Location Option (for Pickup)
-          if (widget.isPickup && _searchQuery.isEmpty)
+            // Search Field
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: InkWell(
-                onTap: () {
-                  final busStand = DemoData.popularPlaces[0];
-                  widget.onSelected(busStand);
-                  Navigator.pop(context);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.08),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _searchController,
+                autofocus: !widget.isPickup,
+                decoration: InputDecoration(
+                  hintText: isMr ? 'कोणतेही ठिकाण शोधा (धाराशिव)...' : 'Search any place in Dharashiv...',
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                    borderSide: const BorderSide(color: AppColors.border),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.gps_fixed, color: AppColors.success, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              strings.useCurrentLocation,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: AppColors.success,
-                              ),
-                            ),
-                            Text(
-                              isMr ? 'धाराशिव केंद्र (GPS सक्रिय)' : 'Dharashiv Center (GPS Active)',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
                   ),
                 ),
+                onChanged: _onSearchChanged,
               ),
             ),
 
-          const Divider(height: 14, color: AppColors.border),
+            if (_isSearching)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: LinearProgressIndicator(
+                  minHeight: 2,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(BrandConfig.accentYellow),
+                ),
+              ),
 
-          // Filtered Places List
-          Expanded(
-            child: filteredPlaces.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 10),
+
+            // Use Current Location Option (for Pickup)
+            if (widget.isPickup && _searchQuery.isEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: InkWell(
+                  onTap: _isAcquiringGps ? null : () => _handleUseCurrentLocation(strings, isMr),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.success.withOpacity(0.25)),
+                    ),
+                    child: Row(
                       children: [
-                        const Icon(Icons.search_off, size: 36, color: AppColors.textMuted),
-                        const SizedBox(height: 8),
-                        Text(
-                          isMr ? 'कोणतेही ठिकाण सापडले नाही' : 'No landmarks found',
-                          style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                        if (_isAcquiringGps)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.success),
+                          )
+                        else
+                          const Icon(Icons.gps_fixed, color: AppColors.success, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                strings.useCurrentLocation,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.success,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _isAcquiringGps
+                                    ? (isMr ? 'GPS स्थान मिळवत आहोत...' : 'Acquiring device GPS position...')
+                                    : (locState.hasRealGps
+                                        ? (locState.readableAddress ?? (isMr ? 'सध्याचे स्थान सक्रिय' : 'Current GPS active'))
+                                        : (isMr ? 'रिअल-टाइम GPS स्थान मिळवण्यासाठी टॅप करा' : 'Tap to acquire real GPS location')),
+                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    itemCount: filteredPlaces.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
-                    itemBuilder: (context, index) {
-                      final place = filteredPlaces[index];
-                      final isCurrent = place.id == widget.currentSelection.id;
-                      final categoryColor = _getCategoryColor(place.category);
-
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: categoryColor.withOpacity(0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(_getCategoryIcon(place.category), color: categoryColor, size: 20),
-                        ),
-                        title: Text(
-                          place.getName(isMr),
-                          style: TextStyle(
-                            fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                            fontSize: 14,
-                            color: isCurrent ? AppColors.primaryDark : AppColors.textPrimary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          place.address,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: isCurrent
-                            ? const Icon(Icons.check_circle, color: AppColors.primaryDark, size: 20)
-                            : Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  place.getCategoryName(isMr),
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                        onTap: () {
-                          widget.onSelected(place);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
                   ),
-          ),
-        ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+            // Category Chips (when not actively searching)
+            if (_searchQuery.isEmpty) ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    _buildSearchChip('All', isMr ? 'सर्व' : 'All'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('Bus Stand', isMr ? 'बस स्थानक' : 'Bus Stand'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('Railway Station', isMr ? 'रेल्वे' : 'Railway'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('Hospital', isMr ? 'रुग्णालय' : 'Hospital'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('Market', isMr ? 'बाजार' : 'Market'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('College', isMr ? 'महाविद्यालय' : 'College'),
+                    const SizedBox(width: 8),
+                    _buildSearchChip('Temple', isMr ? 'मंदिर' : 'Temple'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+            const Divider(height: 1, color: AppColors.border),
+
+            // Results List
+            Expanded(
+              child: _buildPlacesList(context, strings, isMr, filteredLandmarks),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildPlacesList(
+    BuildContext context,
+    AppStrings strings,
+    bool isMr,
+    List<PopularPlaceModel> filteredLandmarks,
+  ) {
+    // 1. Live Geocoding Search Active
+    if (_searchQuery.isNotEmpty) {
+      if (_isSearching && _remoteSearchResults.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: BrandConfig.accentYellow),
+              const SizedBox(height: 12),
+              Text(
+                strings.searchingPlaces,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (_remoteSearchResults.isNotEmpty) {
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          itemCount: _remoteSearchResults.length,
+          separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+          itemBuilder: (context, index) {
+            final result = _remoteSearchResults[index];
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.location_on, color: AppColors.primaryDark, size: 20),
+              ),
+              title: Text(
+                result.getName(isMr),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              subtitle: Text(
+                result.displayAddress,
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  result.category,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+              onTap: () {
+                widget.onSelected(result.toPopularPlaceModel());
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      }
+
+      // No remote results, fallback to filtered local landmarks
+      if (filteredLandmarks.isNotEmpty) {
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          itemCount: filteredLandmarks.length,
+          separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+          itemBuilder: (context, index) {
+            final place = filteredLandmarks[index];
+            final categoryColor = _getCategoryColor(place.category);
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: categoryColor.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(_getCategoryIcon(place.category), color: categoryColor, size: 20),
+              ),
+              title: Text(
+                place.getName(isMr),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              subtitle: Text(
+                place.address,
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                widget.onSelected(place);
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      }
+
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.search_off, size: 40, color: AppColors.textMuted),
+            const SizedBox(height: 10),
+            Text(
+              isMr ? 'कोणतेही ठिकाण सापडले नाही' : 'No places found',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isMr
+                  ? 'कृपया वेगळा पत्ता किंवा धाराशिवमधील लँडमार्क टाइप करा.'
+                  : 'Try typing a different street or landmark in Dharashiv.',
+              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 2. Browsing Curated Landmarks (Search Query Empty)
+    if (filteredLandmarks.isEmpty) {
+      return Center(
+        child: Text(
+          isMr ? 'कोणतेही ठिकाण उपलब्ध नाही' : 'No places available',
+          style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      itemCount: filteredLandmarks.length,
+      separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+      itemBuilder: (context, index) {
+        final place = filteredLandmarks[index];
+        final isCurrent = place.id == widget.currentSelection.id;
+        final categoryColor = _getCategoryColor(place.category);
+
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: categoryColor.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(_getCategoryIcon(place.category), color: categoryColor, size: 20),
+          ),
+          title: Text(
+            place.getName(isMr),
+            style: TextStyle(
+              fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
+              fontSize: 14,
+              color: isCurrent ? AppColors.primaryDark : AppColors.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            place.address,
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: isCurrent
+              ? const Icon(Icons.check_circle, color: AppColors.primaryDark, size: 20)
+              : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    place.getCategoryName(isMr),
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+          onTap: () {
+            widget.onSelected(place);
+            Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
 
   Widget _buildSearchChip(String key, String label) {
     final isSelected = _filterCategory == key;
@@ -1494,3 +1872,4 @@ class _PlaceSearchSheetState extends ConsumerState<_PlaceSearchSheet> {
     );
   }
 }
+

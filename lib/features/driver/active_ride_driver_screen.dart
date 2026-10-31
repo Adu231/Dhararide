@@ -59,10 +59,54 @@ class ActiveRideDriverScreen extends ConsumerWidget {
           const SizedBox(width: 16),
         ],
       ),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           children: [
+            // Driver Ride Lifecycle Stepper
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.sync, size: 16, color: AppColors.primaryDark),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Live Status: ${activeRide.status.label}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildStepItem(0, 'Assigned', activeRide.status),
+                      _buildStepLine(0, activeRide.status),
+                      _buildStepItem(1, 'Arriving', activeRide.status),
+                      _buildStepLine(1, activeRide.status),
+                      _buildStepItem(2, 'Arrived', activeRide.status),
+                      _buildStepLine(2, activeRide.status),
+                      _buildStepItem(3, 'Started', activeRide.status),
+                      _buildStepLine(3, activeRide.status),
+                      _buildStepItem(4, 'Complete', activeRide.status),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
             // Customer Card
             Container(
               padding: const EdgeInsets.all(16),
@@ -133,6 +177,9 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Text('Destination Drop:', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                   Text(activeRide.destination.placeName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 12),
+                  const Text('Sample Trip Distance:', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  const Text('2.4 km', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   const Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -147,32 +194,152 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 24),
 
-            if (!isStarted) ...[
+            // Driver Status Control Buttons (Step-by-Step)
+            if (activeRide.status == RideStatus.driverAccepted) ...[
+              PrimaryButton(
+                text: 'Heading to Pickup',
+                icon: Icons.directions_car,
+                onClick: () {
+                  ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArriving);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Status updated: Driver Arriving')),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              SecondaryButton(
+                text: 'Arrived at Pickup',
+                icon: Icons.pin_drop_rounded,
+                onClick: () {
+                  ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArrived);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Status updated: Driver Arrived at Pickup')),
+                  );
+                },
+              ),
+            ] else if (activeRide.status == RideStatus.driverArriving) ...[
+              PrimaryButton(
+                text: 'Arrived at Pickup',
+                icon: Icons.pin_drop_rounded,
+                onClick: () {
+                  ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArrived);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Status updated: Driver Arrived at Pickup')),
+                  );
+                },
+              ),
+            ] else if (activeRide.status == RideStatus.driverArrived) ...[
               PrimaryButton(
                 text: strings.startRide,
                 icon: Icons.play_arrow,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.rideStarted);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Status updated: Ride Started')),
+                  );
                 },
               ),
-            ] else ...[
+            ] else if (activeRide.status == RideStatus.rideStarted) ...[
               PrimaryButton(
                 text: strings.completeRide,
                 icon: Icons.check_circle,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).completeActiveRide();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ride completed successfully! ₹20 received.')),
+                    const SnackBar(content: Text('Ride completed successfully!')),
                   );
-                  context.go('/driver/home');
                 },
               ),
+            ] else ...[
+              PrimaryButton(
+                text: 'Return to Dashboard',
+                icon: Icons.dashboard,
+                onClick: () => context.go('/driver/home'),
+              ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
         ),
+      ),
+    );
+  }
+
+  int _getDriverStepIndex(RideStatus status) {
+    switch (status) {
+      case RideStatus.searching:
+        return -1;
+      case RideStatus.driverAccepted:
+        return 0;
+      case RideStatus.driverArriving:
+        return 1;
+      case RideStatus.driverArrived:
+        return 2;
+      case RideStatus.rideStarted:
+        return 3;
+      case RideStatus.rideCompleted:
+        return 4;
+      case RideStatus.cancelled:
+        return -1;
+    }
+  }
+
+  Widget _buildStepItem(int stepIndex, String title, RideStatus status) {
+    final current = _getDriverStepIndex(status);
+    final isPassed = current >= 0 && stepIndex < current;
+    final isCurrent = current >= 0 && stepIndex == current;
+
+    final circleBg = isPassed
+        ? AppColors.success
+        : (isCurrent ? BrandConfig.accentYellow : const Color(0xFFF1F3F5));
+    final circleBorder = isPassed
+        ? AppColors.success
+        : (isCurrent ? BrandConfig.textPrimaryBlack : const Color(0xFFCED4DA));
+
+    return Column(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: circleBg,
+            shape: BoxShape.circle,
+            border: Border.all(color: circleBorder, width: isCurrent ? 2 : 1.5),
+          ),
+          child: Center(
+            child: isPassed
+                ? const Icon(Icons.check, size: 12, color: Colors.white)
+                : (isCurrent
+                    ? const Icon(Icons.radio_button_checked, size: 12, color: BrandConfig.textPrimaryBlack)
+                    : Text(
+                        '${stepIndex + 1}',
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textMuted),
+                      )),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 9.5,
+            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+            color: isCurrent ? BrandConfig.textPrimaryBlack : (isPassed ? AppColors.success : AppColors.textMuted),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepLine(int leftIndex, RideStatus status) {
+    final current = _getDriverStepIndex(status);
+    final isPassed = current >= 0 && leftIndex < current;
+
+    return Expanded(
+      child: Container(
+        height: 2,
+        margin: const EdgeInsets.only(bottom: 14),
+        color: isPassed ? AppColors.success : const Color(0xFFDEE2E6),
       ),
     );
   }
