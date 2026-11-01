@@ -130,3 +130,61 @@ enum AppLanguage {
     );
   }
 }
+
+enum NotificationCategory {
+  all,
+  rides,
+  alerts;
+
+  String get label {
+    switch (this) {
+      case NotificationCategory.all:
+        return 'All';
+      case NotificationCategory.rides:
+        return 'Rides';
+      case NotificationCategory.alerts:
+        return 'Alerts';
+    }
+  }
+
+  String labelLocalized(bool isMr) {
+    switch (this) {
+      case NotificationCategory.all:
+        return isMr ? 'सर्व' : 'All';
+      case NotificationCategory.rides:
+        return isMr ? 'राइड्स' : 'Rides';
+      case NotificationCategory.alerts:
+        return isMr ? 'सूचना' : 'Alerts';
+    }
+  }
+}
+
+enum NotificationType {
+  newRideRequest,
+  rideAccepted,
+  driverArriving,
+  driverArrived,
+  rideStarted,
+  rideCompleted,
+  rideCancelled,
+  systemAlert,
+  announcement;
+
+  NotificationCategory get category {
+    switch (this) {
+      case NotificationType.newRideRequest:
+      case NotificationType.rideAccepted:
+      case NotificationType.driverArriving:
+      case NotificationType.driverArrived:
+      case NotificationType.rideStarted:
+      case NotificationType.rideCompleted:
+      case NotificationType.rideCancelled:
+        return NotificationCategory.rides;
+      case NotificationType.systemAlert:
+      case NotificationType.announcement:
+        return NotificationCategory.alerts;
+    }
+  }
+
+  bool get isRideEvent => category == NotificationCategory.rides;
+}

@@ -177,4 +177,49 @@ class AppStrings {
   String get languageSettings => isMr ? 'भाषा / Language' : 'Language / भाषा';
   String get english => 'English (इंग्रजी)';
   String get marathi => 'मराठी';
+
+  // Notifications & Settings
+  String get notificationSettings => isMr ? 'सूचना सेटिंग्ज' : 'Notification Settings';
+  String get filterAll => isMr ? 'सर्व' : 'All';
+  String get filterRides => isMr ? 'राइड्स' : 'Rides';
+  String get filterAlerts => isMr ? 'सूचना व इशारे' : 'Alerts';
+  String get markAllAsRead => isMr ? 'सर्व वाचलेले' : 'Mark all as read';
+  String get clearAllNotifications => isMr ? 'सर्व साफ करा' : 'Clear all';
+  String get clearNotificationsTitle => isMr ? 'सर्व सूचना साफ करायच्या का?' : 'Clear all notifications?';
+  String get clearNotificationsDesc => isMr
+      ? 'हे तुमच्या इतिहासामधून सर्व सूचना काढून टाकेल.'
+      : 'This will remove all notification items from your history.';
+  String get noNotificationsYet => isMr ? 'कोणतीही सूचना नाही' : 'No notifications yet';
+  String get noNotificationsCategory => isMr
+      ? 'या वर्गात सध्या कोणतीही सूचना नाही.'
+      : 'No notifications in this category yet.';
+  String get markedAllAsReadMessage => isMr
+      ? 'सर्व सूचना वाचल्या म्हणून चिन्हांकित केल्या'
+      : 'All notifications marked as read';
+  String get notificationsClearedMessage => isMr
+      ? 'सर्व सूचना साफ केल्या'
+      : 'All notifications cleared';
+  String get rideUpdates => isMr ? 'राइड अपडेट्स' : 'Ride Updates';
+  String get rideUpdatesDesc => isMr
+      ? 'चालक नियुक्त, येत आहे, प्रवास सुरू आणि पूर्ण झाल्याच्या सूचना'
+      : 'Live alerts for driver assignment, arrival, trip start, and completion';
+  String get bookingAlerts => isMr ? 'बुकिंग अलर्ट्स' : 'Booking Alerts';
+  String get bookingAlertsDesc => isMr
+      ? 'नवीन राइड विनंत्या आणि त्वरित बुकिंग पुष्टीकरण'
+      : 'Instant alerts for new ride requests and booking confirmations';
+  String get notificationSounds => isMr ? 'सूचना आवाज' : 'Notification Sounds';
+  String get notificationSoundsDesc => isMr
+      ? 'सूचना आल्यावर ऑडिओ टोन वाजवा'
+      : 'Play an audible tone when new ride alerts arrive';
+  String get vibrationAlerts => isMr ? 'कंपन (Vibration)' : 'Vibration Alerts';
+  String get vibrationAlertsDesc => isMr
+      ? 'महत्त्वाच्या राइड टप्प्यांवर व्हायब्रेट करा'
+      : 'Vibrate for critical ride updates and arrivals';
+  String get promotionalAndSystem => isMr ? 'सिस्टम व व्यासपीठ घोषणा' : 'System & Service Announcements';
+  String get promotionalAndSystemDesc => isMr
+      ? 'धाराशिव सेवा अपडेट्स आणि ०% कमिशन धोरण सूचना'
+      : 'Dharashiv local platform updates and 0% commission announcements';
+  String get resetMockNotifications => isMr ? 'डेमो सूचना रीसेट करा' : 'Reset Demo Notifications';
+  String get simulateNotification => isMr ? 'चाचणी सूचना पाठवा' : 'Simulate Test Alert';
+  String get testNotificationSent => isMr ? 'चाचणी सूचना पाठवली!' : 'Test notification generated!';
 }

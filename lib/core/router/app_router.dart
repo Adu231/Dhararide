@@ -36,6 +36,7 @@ import '../../features/admin/admin_complaints_screen.dart';
 import '../../features/admin/admin_announcements_screen.dart';
 
 import '../../features/common/ride_detail_screen.dart';
+import '../../features/notifications/notification_settings_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -176,6 +177,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final ride = state.extra as RideModel;
           return RideDetailScreen(ride: ride);
         },
+      ),
+
+      // Notification Settings
+      GoRoute(
+        path: '/notifications/settings',
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
     ],
   );
