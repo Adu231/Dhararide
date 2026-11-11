@@ -8,6 +8,11 @@ class BrandConfig {
   static const String subTaglineMr = 'धाराशिवचे स्थानिक ऑटो-रिक्षा नेटवर्क';
   static const String targetCity = 'Dharashiv';
 
+  // Logo & Branding Assets
+  static const String appLogoAsset = 'assets/images/ic_app_icon.png';
+  static const String appBrandLogoAsset = 'assets/images/ic_main_brand_logo.png';
+  static const String appSquareLogoAsset = 'assets/images/ic_launcher_square.png';
+
   // Visual Palette
   static const Color backgroundWhite = Color(0xFFFFFFFF);
   static const Color surfaceLight = Color(0xFFF8F9FA);

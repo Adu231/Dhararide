@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/brand/brand_config.dart';
+import '../../core/services/local_notification_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/auto_rickshaw_icon.dart';
 import '../../core/widgets/responsive_container.dart';
 import '../../data/demo/demo_data.dart';
+import '../../data/models/enums.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/ride_repository.dart';
 import '../../data/session/session_manager.dart';
 
@@ -36,6 +39,30 @@ class _SearchingDriverScreenState extends ConsumerState<SearchingDriverScreen> w
         final activeRide = ref.read(rideRepositoryProvider).activeRide;
         if (activeRide != null) {
           rideRepo.driverAcceptRide(activeRide.id, DemoData.demoDriver);
+          // Dispatch actual native Android notification for Customer
+          try {
+            final notifService = ref.read(localNotificationServiceProvider);
+            final isMr = ref.read(stringsProvider).isMr;
+            final notif = NotificationModel(
+              id: 'notif_acc_${activeRide.id}',
+              type: NotificationType.rideAccepted,
+              titleEn: 'Ride Accepted!',
+              titleMr: 'राइड स्वीकारली!',
+              bodyEn: '${DemoData.demoDriver.name} accepted your ride.',
+              bodyMr: '${DemoData.demoDriver.name} यांनी तुमची राइड स्वीकारली.',
+              rideId: activeRide.id,
+              driverName: DemoData.demoDriver.name,
+              driverPhone: DemoData.demoDriver.phone,
+              autoNumber: DemoData.demoDriver.autoNumber,
+              pickupAddress: activeRide.pickup.placeName,
+              destinationAddress: activeRide.destination.placeName,
+              fare: activeRide.finalFare ?? activeRide.suggestedFare,
+              statusBadgeEn: 'Accepted',
+              statusBadgeMr: 'स्वीकारले',
+            );
+            notifService.showNotificationForModel(notif, userRole: UserRole.customer, isMr: isMr);
+          } catch (_) {}
+
           context.pushReplacement('/customer/active-ride');
         }
       }

@@ -25,6 +25,8 @@ import '../../features/customer/customer_profile_screen.dart';
 
 import '../../features/driver/driver_shell.dart';
 import '../../features/driver/driver_home_screen.dart';
+import '../../features/driver/driver_rides_screen.dart';
+import '../../features/driver/driver_profile_screen.dart';
 import '../../features/driver/active_ride_driver_screen.dart';
 import '../../features/driver/pending_approval_screen.dart';
 
@@ -38,9 +40,61 @@ import '../../features/admin/admin_announcements_screen.dart';
 import '../../features/common/ride_detail_screen.dart';
 import '../../features/notifications/notification_settings_screen.dart';
 
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
+    redirect: (context, state) {
+      final user = ref.read(currentUserProvider);
+      final loc = state.uri.path;
+
+      final isPublicRoute = loc == '/splash' ||
+          loc == '/onboarding' ||
+          loc == '/login' ||
+          loc == '/register';
+
+      // 1. If not authenticated, require login for protected routes
+      if (user == null) {
+        if (!isPublicRoute) {
+          return '/login';
+        }
+        return null;
+      }
+
+      // 2. If authenticated user attempts to access splash/login/register, redirect to role home
+      if (loc == '/login' || loc == '/register' || loc == '/splash') {
+        if (user.role == UserRole.driver) {
+          final driver = ref.read(currentDriverProvider);
+          if (driver?.verificationStatus == DriverVerificationStatus.pending) {
+            return '/driver/pending';
+          }
+          return '/driver/home';
+        } else if (user.role == UserRole.admin) {
+          return '/admin/dashboard';
+        } else {
+          return '/customer/home';
+        }
+      }
+
+      // 3. Enforce Role-Based Access Restrictions
+      if (user.role == UserRole.customer) {
+        if (loc.startsWith('/driver') || loc.startsWith('/admin')) {
+          return '/customer/home';
+        }
+      } else if (user.role == UserRole.driver) {
+        if (loc.startsWith('/customer') || loc.startsWith('/admin')) {
+          return '/driver/home';
+        }
+      } else if (user.role == UserRole.admin) {
+        if (loc.startsWith('/customer') || (loc.startsWith('/driver') && loc != '/driver/home')) {
+          return '/admin/dashboard';
+        }
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',
@@ -121,7 +175,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/driver/rides',
-            builder: (context, state) => const CustomerRidesScreen(),
+            builder: (context, state) => const DriverRidesScreen(),
           ),
           GoRoute(
             path: '/driver/notifications',
@@ -129,7 +183,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/driver/profile',
-            builder: (context, state) => const CustomerProfileScreen(),
+            builder: (context, state) => const DriverProfileScreen(),
           ),
         ],
       ),

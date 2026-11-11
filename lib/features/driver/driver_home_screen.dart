@@ -1115,12 +1115,20 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     }
 
     final activeRide = rideState.activeRide;
+    final currentDriverId = driver?.id ?? DemoData.demoDriver.id;
     final hasSearchingRide = _isOnline && activeRide != null && activeRide.status == RideStatus.searching;
     final hasActiveOngoingRide = _isOnline &&
         activeRide != null &&
+        activeRide.driverId == currentDriverId &&
         activeRide.status != RideStatus.searching &&
         activeRide.status != RideStatus.cancelled &&
         activeRide.status != RideStatus.rideCompleted;
+
+    final earnings = ref.watch(rideRepositoryProvider.notifier).calculateDriverEarnings(currentDriverId);
+    final todayEarnings = (earnings['todayEarnings'] as double? ?? 0.0).toStringAsFixed(0);
+    final todayRides = (earnings['todayRidesCount'] as int? ?? 0).toString();
+    final driverRating = driver?.rating ?? 4.9;
+    final totalRides = driver?.totalRides ?? (earnings['totalRidesCount'] as int? ?? 0);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1381,7 +1389,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 Expanded(
                   child: StatCard(
                     title: strings.todaysEarnings,
-                    value: '₹3,840',
+                    value: '₹$todayEarnings',
                     icon: Icons.account_balance_wallet,
                     subtitle: '100% directly to you (0% fee)',
                   ),
@@ -1390,7 +1398,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 Expanded(
                   child: StatCard(
                     title: strings.todaysRides,
-                    value: '14',
+                    value: todayRides,
                     icon: Icons.electric_rickshaw,
                     subtitle: 'Completed rides',
                   ),
@@ -1411,11 +1419,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 children: [
                   const Icon(Icons.star, size: 36, color: AppColors.primaryDark),
                   const SizedBox(width: 12),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('4.9 Rating', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text('Based on 142 total rides in Dharashiv', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                      Text('$driverRating Rating', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Based on $totalRides total rides in Dharashiv', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                     ],
                   ),
                 ],

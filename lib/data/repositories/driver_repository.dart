@@ -66,6 +66,22 @@ class DriverRepositoryNotifier extends Notifier<List<DriverModel>> {
     }).toList();
   }
 
+  DriverModel? getDriverByUserId(String userId) {
+    try {
+      return state.firstWhere((d) => d.userId == userId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DriverModel? getDriverById(String driverId) {
+    try {
+      return state.firstWhere((d) => d.id == driverId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   DriverModel registerDriver({
     required String userId,
     required String name,

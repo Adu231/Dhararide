@@ -5,7 +5,9 @@ import '../../core/brand/brand_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/auto_rickshaw_icon.dart';
 import '../../core/widgets/responsive_container.dart';
+import '../../data/demo/demo_data.dart';
 import '../../data/models/enums.dart';
+import '../../data/repositories/ride_repository.dart';
 import '../../data/session/session_manager.dart';
 
 class CustomerProfileScreen extends ConsumerWidget {
@@ -13,7 +15,7 @@ class CustomerProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(currentUserProvider) ?? DemoData.demoCustomer;
     final strings = ref.watch(stringsProvider);
     final isMr = strings.isMr;
     final activeLang = ref.watch(languageProvider);
@@ -55,7 +57,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                     ),
                     child: Center(
                       child: Text(
-                        (user?.name.isNotEmpty == true) ? user!.name[0].toUpperCase() : 'C',
+                        user.name.isNotEmpty ? user.name[0].toUpperCase() : 'C',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
@@ -66,12 +68,12 @@ class CustomerProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    user?.name ?? 'Aditya Patil',
+                    user.name,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    user?.phone ?? '+91 98220 12345',
+                    user.phone,
                     style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
@@ -97,6 +99,53 @@ class CustomerProfileScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Saved Locations Card (Quick 1-Tap Booking)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.bookmark_outline_rounded, size: 18, color: BrandConfig.textPrimaryBlack),
+                      const SizedBox(width: 8),
+                      Text(
+                        isMr ? 'जतन केलेली ठिकाणे (Saved Locations)' : 'Saved Locations',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSavedLocationTile(
+                    icon: Icons.home_outlined,
+                    title: isMr ? 'घर (Home)' : 'Home',
+                    address: DemoData.popularPlaces[0].nameEn,
+                    onTap: () => context.go('/customer/home'),
+                  ),
+                  const Divider(height: 12),
+                  _buildSavedLocationTile(
+                    icon: Icons.work_outline,
+                    title: isMr ? 'कार्यालय / कॉलेज (Work)' : 'Work / College',
+                    address: DemoData.popularPlaces[2].nameEn,
+                    onTap: () => context.go('/customer/home'),
+                  ),
+                  const Divider(height: 12),
+                  _buildSavedLocationTile(
+                    icon: Icons.train_outlined,
+                    title: isMr ? 'रेल्वे स्टेशन (Station)' : 'Railway Station',
+                    address: DemoData.popularPlaces[1].nameEn,
+                    onTap: () => context.go('/customer/home'),
                   ),
                 ],
               ),
@@ -151,7 +200,7 @@ class CustomerProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Dharashiv Support & Platform Policy Card
+            // Payment Methods & 0% Commission Policy Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -163,7 +212,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isMr ? 'धाराशिव सेवा आणि धोरण' : 'Dharashiv Service & Platform Policy',
+                    isMr ? 'पेमेंट आणि धाराशिव धोरण' : 'Payment & Dharashiv Policy',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const SizedBox(height: 12),
@@ -193,6 +242,18 @@ class CustomerProfileScreen extends ConsumerWidget {
                   ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.notifications_outlined, size: 20),
+                    title: Text(
+                      isMr ? 'सूचना सेटिंग्ज' : 'Notification Settings',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 20),
+                    onTap: () => context.push('/notifications/settings'),
+                  ),
+                  const Divider(height: 16),
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -206,7 +267,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      isMr ? 'धाराशिव हेल्पलाइन व मदत कक्ष' : 'Dharashiv Direct Customer Helpline',
+                      isMr ? 'धाराशिव हेल्पलाइन व ग्राहक मदत कक्ष' : 'Dharashiv Direct Customer Helpline',
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),
@@ -226,6 +287,8 @@ class CustomerProfileScreen extends ConsumerWidget {
                 ),
                 onPressed: () {
                   ref.read(currentUserProvider.notifier).logout();
+                  ref.read(currentDriverProvider.notifier).setDriver(null);
+                  ref.read(rideRepositoryProvider.notifier).clearActiveRide();
                   context.go('/login');
                 },
                 icon: const Icon(Icons.logout, size: 18, color: AppColors.error),
@@ -246,6 +309,36 @@ class CustomerProfileScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildSavedLocationTile({
+    required IconData icon,
+    required String title,
+    required String address,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.textSecondary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text(address, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLangTile({
     required String title,
     required String subtitle,
@@ -254,39 +347,28 @@ class CustomerProfileScreen extends ConsumerWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryLight : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? BrandConfig.accentYellowLight : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? BrandConfig.accentYellowDark : AppColors.border,
-            width: isSelected ? 1.8 : 1,
+            width: isSelected ? 1.5 : 1,
           ),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: isSelected ? BrandConfig.textPrimaryBlack : AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                ),
-              ],
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                fontSize: 13.5,
+                color: BrandConfig.textPrimaryBlack,
+              ),
             ),
-            const Spacer(),
-            if (isSelected)
-              const Icon(Icons.check_circle, size: 16, color: BrandConfig.textPrimaryBlack),
+            Text(subtitle, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
           ],
         ),
       ),

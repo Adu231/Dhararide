@@ -222,4 +222,43 @@ class AppStrings {
   String get resetMockNotifications => isMr ? 'डेमो सूचना रीसेट करा' : 'Reset Demo Notifications';
   String get simulateNotification => isMr ? 'चाचणी सूचना पाठवा' : 'Simulate Test Alert';
   String get testNotificationSent => isMr ? 'चाचणी सूचना पाठवली!' : 'Test notification generated!';
+  String get testNotification => isMr ? 'चाचणी सूचना' : 'Test Notification';
+  String get testNotificationPreview => isMr ? 'स्थानिक सूचना पूर्वावलोकन' : 'Local Notification Preview';
+  String get testNotificationTriggered => isMr ? 'Android स्थानिक सूचना पाठवली!' : 'Android local notification triggered!';
+  String get notificationPermissionDenied => isMr
+      ? 'सूचना परवानगी नाकारली गेली आहे. कृपया डिव्हाइस सेटिंग्जमध्ये चालू करा.'
+      : 'Notification permission denied. Please allow notifications in device settings.';
+  String get testAllNotifications => isMr ? 'सर्व सूचना चाचणी' : 'Test All Types';
+  String get typeRideRequested => isMr ? 'राइड विनंती' : 'Ride Requested';
+  String get typeRideAccepted => isMr ? 'राइड स्वीकारली' : 'Ride Accepted';
+  String get typeDriverArriving => isMr ? 'चालक येत आहे' : 'Driver Arriving';
+  String get typeDriverArrived => isMr ? 'चालक पोहोचला' : 'Driver Arrived';
+  String get typeRideStarted => isMr ? 'प्रवास सुरू' : 'Ride Started';
+  String get typeRideCompleted => isMr ? 'प्रवास पूर्ण' : 'Ride Completed';
+  String get typeRideCancelled => isMr ? 'प्रवास रद्द' : 'Ride Cancelled';
+
+  // Actionable Notification Buttons
+  String get actionAcceptRide => isMr ? 'स्वीकारा' : 'Accept Ride';
+  String get actionRejectRide => isMr ? 'नाकारा' : 'Reject Ride';
+  String get actionAccept => isMr ? 'स्वीकारा' : 'Accept';
+  String get actionDecline => isMr ? 'नाकारा' : 'Decline';
+  String get actionViewRide => isMr ? 'राइड पहा' : 'View Ride';
+  String get actionViewLive => isMr ? 'थेट पहा' : 'View Live';
+  String get actionViewDetails => isMr ? 'तपशील पहा' : 'View Details';
+  String get actionOk => isMr ? 'ठीक आहे' : 'OK';
+  String get actionTrackRide => isMr ? 'प्रवास ट्रॅक करा' : 'Track Ride';
+  String get actionCallCustomer => isMr ? 'ग्राहकाला कॉल करा' : 'Call Customer';
+  String get actionCallDriver => isMr ? 'चालकाला कॉल करा' : 'Call Driver';
+  String get actionRateRide => isMr ? 'रेटिंग द्या' : 'Rate Ride';
+  String get actionViewReceipt => isMr ? 'पावती पहा' : 'View Receipt';
+  String get actionBookAgain => isMr ? 'पुन्हा बुक करा' : 'Book Again';
+  String get actionViewEarnings => isMr ? 'कमाई पहा' : 'View Earnings';
+  String get actionDriverHome => isMr ? 'चालक डॅशबोर्ड' : 'Driver Dashboard';
+  String get actionFindRides => isMr ? 'नवीन राइड शोधा' : 'Find Rides';
+  String get actionViewAlerts => isMr ? 'सूचना पहा' : 'View Alerts';
+  String get actionManageAlerts => isMr ? 'घोषणा व्यवस्थापित करा' : 'Manage Alerts';
+  String get actionRideAcceptedSuccess => isMr ? 'राइड स्वीकारली! पिकअप मार्ग उघडत आहे...' : 'Ride accepted! Opening pickup route...';
+  String get actionRideDeclinedSuccess => isMr ? 'राइड नाकारली' : 'Ride declined';
+  String get actionRideCancelledSuccess => isMr ? 'राइड रद्द केली' : 'Ride cancelled';
+  String get actionCalling => isMr ? 'कॉल सुरू करत आहोत...' : 'Calling...';
 }

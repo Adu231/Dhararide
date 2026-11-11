@@ -9,6 +9,7 @@ import '../../core/widgets/responsive_container.dart';
 import '../../data/demo/demo_data.dart';
 import '../../data/models/enums.dart';
 import '../../data/repositories/driver_repository.dart';
+import '../../data/repositories/ride_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/session/session_manager.dart';
 
@@ -30,6 +31,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final user = userRepo.login(_phoneController.text.trim(), _selectedRole);
 
     if (user != null) {
+      // Clear previous role-specific session and active ride to prevent data leakage
+      ref.read(currentDriverProvider.notifier).setDriver(null);
+      ref.read(rideRepositoryProvider.notifier).clearActiveRide();
+
       ref.read(currentUserProvider.notifier).login(user);
       if (user.role == UserRole.driver) {
         final drivers = ref.read(driverRepositoryProvider);
@@ -38,7 +43,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           orElse: () => DemoData.demoDriver,
         );
         ref.read(currentDriverProvider.notifier).setDriver(driver);
-        context.go('/driver/home');
+        if (driver.verificationStatus == DriverVerificationStatus.pending) {
+          context.go('/driver/pending');
+        } else {
+          context.go('/driver/home');
+        }
       } else if (user.role == UserRole.admin) {
         context.go('/admin/dashboard');
       } else {
@@ -47,18 +56,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _demoQuickLogin(UserRole role) {
+  void _demoQuickLogin(UserRole role, {String? phone}) {
     setState(() => _selectedRole = role);
-    switch (role) {
-      case UserRole.customer:
-        _phoneController.text = DemoData.demoCustomer.phone;
-        break;
-      case UserRole.driver:
-        _phoneController.text = DemoData.demoDriverUser.phone;
-        break;
-      case UserRole.admin:
-        _phoneController.text = DemoData.demoAdmin.phone;
-        break;
+    if (phone != null) {
+      _phoneController.text = phone;
+    } else {
+      switch (role) {
+        case UserRole.customer:
+          _phoneController.text = DemoData.demoCustomer.phone;
+          break;
+        case UserRole.driver:
+          _phoneController.text = DemoData.demoDriverUser.phone;
+          break;
+        case UserRole.admin:
+          _phoneController.text = DemoData.demoAdmin.phone;
+          break;
+      }
     }
     _handleLogin();
   }
@@ -201,7 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _demoQuickLogin(UserRole.customer),
+                            onPressed: () => _demoQuickLogin(UserRole.customer, phone: DemoData.demoCustomer.phone),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: AppColors.textPrimary,
@@ -218,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _demoQuickLogin(UserRole.driver),
+                            onPressed: () => _demoQuickLogin(UserRole.driver, phone: DemoData.demoDriverUser.phone),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: AppColors.textPrimary,
@@ -235,7 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _demoQuickLogin(UserRole.admin),
+                            onPressed: () => _demoQuickLogin(UserRole.admin, phone: DemoData.demoAdmin.phone),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: AppColors.textPrimary,
@@ -247,6 +260,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             child: Text(strings.demoAdminBtn, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _demoQuickLogin(UserRole.customer, phone: DemoData.demoCustomer2.phone),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              side: const BorderSide(color: BrandConfig.accentYellowDark),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Customer 2 (Pooja)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandConfig.textPrimaryBlack)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _demoQuickLogin(UserRole.driver, phone: DemoData.demoDriverUser2.phone),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              side: const BorderSide(color: BrandConfig.accentYellowDark),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Driver 2 (Santosh)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandConfig.textPrimaryBlack)),
                           ),
                         ),
                       ],

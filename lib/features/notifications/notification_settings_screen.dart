@@ -7,6 +7,7 @@ import '../../data/models/enums.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../data/session/session_manager.dart';
+import '../../core/services/local_notification_service.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
@@ -215,10 +216,18 @@ class NotificationSettingsScreen extends ConsumerWidget {
                               rideId: 'RIDE-9021',
                               driverName: 'Ramesh Shinde',
                               autoNumber: 'MH-25-AZ-4589',
+                              distance: '0.5 km away',
+                              eta: 'ETA: 1 min',
                               actionLabelEn: 'Track Auto',
                               actionLabelMr: 'ट्रॅक करा',
                             );
                             ref.read(notificationRepositoryProvider.notifier).addNotification(newNotif);
+                            ref.read(localNotificationServiceProvider).showNotificationForModel(
+                                  newNotif,
+                                  isMr: isMr,
+                                  playSound: settings.notificationSounds,
+                                  enableVibration: settings.vibration,
+                                );
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -237,6 +246,26 @@ class NotificationSettingsScreen extends ConsumerWidget {
                           icon: const Icon(Icons.add_alert_rounded, size: 16),
                           label: Text(
                             strings.simulateNotification,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: BrandConfig.textPrimaryBlack,
+                            side: const BorderSide(color: BrandConfig.accentYellowDark),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () {
+                            ref.read(localNotificationServiceProvider).openNotificationSettings();
+                          },
+                          icon: const Icon(Icons.settings_outlined, size: 16),
+                          label: Text(
+                            isMr ? 'फोन ॲप सूचना सेटिंग्ज उघडा' : 'Device App Notification Settings',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),

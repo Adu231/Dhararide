@@ -29,7 +29,7 @@ class AutoRickshawIcon extends StatelessWidget {
       ),
       padding: EdgeInsets.all(size * 0.15),
       child: Image.asset(
-        'assets/images/ic_app_icon.png',
+        BrandConfig.appLogoAsset,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) {
           return Icon(

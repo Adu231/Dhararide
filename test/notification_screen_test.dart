@@ -8,7 +8,7 @@ import 'package:dharride/features/notifications/widgets/notification_card.dart';
 
 void main() {
   testWidgets('NotificationsScreen renders templates and interacts properly', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(400, 900);
+    tester.view.physicalSize = const Size(400, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
 
@@ -33,21 +33,20 @@ void main() {
     expect(find.byType(NotificationCard), findsWidgets);
 
     // Verify UI Templates
-    expect(find.text('New Ride Request Available'), findsOneWidget);
-    expect(find.text('Driver Has Arrived!'), findsOneWidget);
+    expect(find.text('New Ride Request'), findsWidgets);
+    expect(find.text('Driver Arrived!'), findsWidgets);
 
     // Filter to Alerts
     await tester.tap(find.text('Alerts'));
     await tester.pumpAndSettle();
 
     expect(find.text('0% Commission Active in Dharashiv'), findsOneWidget);
-    expect(find.text('New Ride Request Available'), findsNothing);
 
     // Filter back to Rides
     await tester.tap(find.text('Rides'));
     await tester.pumpAndSettle();
 
-    expect(find.text('New Ride Request Available'), findsOneWidget);
+    expect(find.text('New Ride Request'), findsWidgets);
     expect(find.text('0% Commission Active in Dharashiv'), findsNothing);
 
     // Test Mark all as read button

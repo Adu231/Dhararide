@@ -3,11 +3,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/brand/brand_config.dart';
 import 'core/router/app_router.dart';
+import 'core/services/local_notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'data/session/session_manager.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final container = ProviderContainer();
+  LocalNotificationService().setProviderContainer(container);
+  await LocalNotificationService().initialize();
+  await LocalNotificationService().checkLaunchNotification();
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -50,14 +56,27 @@ void main() {
     );
   };
 
-  runApp(const ProviderScope(child: DharRideApp()));
+  runApp(UncontrolledProviderScope(container: container, child: const DharRideApp()));
 }
 
-class DharRideApp extends ConsumerWidget {
+class DharRideApp extends ConsumerStatefulWidget {
   const DharRideApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DharRideApp> createState() => _DharRideAppState();
+}
+
+class _DharRideAppState extends ConsumerState<DharRideApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      LocalNotificationService().processPendingLaunch();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final activeLanguage = ref.watch(languageProvider);
 

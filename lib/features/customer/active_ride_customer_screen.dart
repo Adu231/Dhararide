@@ -217,10 +217,13 @@ class _ActiveRideCustomerScreenState extends ConsumerState<ActiveRideCustomerScr
   Widget build(BuildContext context) {
     final strings = ref.watch(stringsProvider);
     final isMr = strings.isMr;
+    final user = ref.watch(currentUserProvider);
     final activeRide = ref.watch(rideRepositoryProvider).activeRide;
     final allDrivers = ref.watch(driverRepositoryProvider);
 
-    if (activeRide == null) {
+    final isCustomerOwner = user == null || activeRide?.customerId == user.id;
+
+    if (activeRide == null || !isCustomerOwner) {
       return ResponsiveContainer(
         child: Center(
           child: Padding(

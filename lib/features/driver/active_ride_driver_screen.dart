@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/brand/brand_config.dart';
+import '../../core/services/local_notification_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/custom_buttons.dart';
 import '../../core/widgets/responsive_container.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../data/models/enums.dart';
+import '../../data/models/notification_model.dart';
+import '../../data/models/ride_model.dart';
 import '../../data/repositories/ride_repository.dart';
 import '../../data/session/session_manager.dart';
 
@@ -29,12 +32,41 @@ class ActiveRideDriverScreen extends ConsumerWidget {
     }
   }
 
+  void _sendRideNotification(WidgetRef ref, NotificationType type, RideModel ride, bool isMr) {
+    try {
+      final notif = NotificationModel(
+        id: 'notif_${type.name}_${ride.id}_${DateTime.now().millisecondsSinceEpoch}',
+        type: type,
+        titleEn: type.name,
+        titleMr: type.name,
+        bodyEn: '',
+        bodyMr: '',
+        rideId: ride.id,
+        driverName: ride.driverName,
+        driverPhone: ride.driverPhone,
+        autoNumber: ride.autoNumber,
+        fare: ride.finalFare ?? ride.suggestedFare,
+        pickupAddress: ride.pickup.placeName,
+        destinationAddress: ride.destination.placeName,
+        distance: '0.5 km away',
+        eta: 'ETA: 2 min',
+      );
+      ref.read(localNotificationServiceProvider).showNotificationForModel(
+        notif,
+        userRole: UserRole.customer,
+        isMr: isMr,
+      );
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(stringsProvider);
+    final driver = ref.watch(currentDriverProvider);
     final activeRide = ref.watch(rideRepositoryProvider).activeRide;
+    final isDriverAssigned = driver == null || activeRide?.driverId == driver.id;
 
-    if (activeRide == null) {
+    if (activeRide == null || !isDriverAssigned) {
       return ResponsiveContainer(
         child: Center(
           child: Column(
@@ -203,6 +235,7 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 icon: Icons.directions_car,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArriving);
+                  _sendRideNotification(ref, NotificationType.driverArriving, activeRide, strings.isMr);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Status updated: Driver Arriving')),
                   );
@@ -214,6 +247,7 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 icon: Icons.pin_drop_rounded,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArrived);
+                  _sendRideNotification(ref, NotificationType.driverArrived, activeRide, strings.isMr);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Status updated: Driver Arrived at Pickup')),
                   );
@@ -225,6 +259,7 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 icon: Icons.pin_drop_rounded,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.driverArrived);
+                  _sendRideNotification(ref, NotificationType.driverArrived, activeRide, strings.isMr);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Status updated: Driver Arrived at Pickup')),
                   );
@@ -236,6 +271,7 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 icon: Icons.play_arrow,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).updateRideStatus(RideStatus.rideStarted);
+                  _sendRideNotification(ref, NotificationType.rideStarted, activeRide, strings.isMr);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Status updated: Ride Started')),
                   );
@@ -247,6 +283,7 @@ class ActiveRideDriverScreen extends ConsumerWidget {
                 icon: Icons.check_circle,
                 onClick: () {
                   ref.read(rideRepositoryProvider.notifier).completeActiveRide();
+                  _sendRideNotification(ref, NotificationType.rideCompleted, activeRide, strings.isMr);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Ride completed successfully!')),
                   );

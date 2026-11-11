@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/brand/brand_config.dart';
 import '../../core/services/fare_calculation_service.dart';
+import '../../core/services/local_notification_service.dart';
 import '../../core/services/routing_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/dharashiv_map_widget.dart';
@@ -11,6 +12,7 @@ import '../../core/widgets/responsive_container.dart';
 import '../../data/models/driver_model.dart';
 import '../../data/models/enums.dart';
 import '../../data/models/location_model.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/driver_repository.dart';
 import '../../data/repositories/ride_repository.dart';
 import '../../data/session/session_manager.dart';
@@ -78,13 +80,34 @@ class _FarePreviewScreenState extends ConsumerState<FarePreviewScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      ref.read(rideRepositoryProvider.notifier).createRideRequest(
+      final newRide = ref.read(rideRepositoryProvider.notifier).createRideRequest(
         customer: user,
         pickup: widget.pickup,
         destination: widget.destination,
         suggestedFare: fare,
         paymentMethod: _selectedPayment,
       );
+
+      // Trigger actual native driver notification for incoming booking request
+      try {
+        final notifService = ref.read(localNotificationServiceProvider);
+        final isMr = ref.read(stringsProvider).isMr;
+        final notif = NotificationModel(
+          id: 'notif_new_${newRide.id}',
+          type: NotificationType.newRideRequest,
+          titleEn: 'New Ride Request',
+          titleMr: 'नवीन राइड विनंती',
+          bodyEn: 'Pickup: ${widget.pickup.placeName} • Drop: ${widget.destination.placeName}',
+          bodyMr: 'पिकअप: ${widget.pickup.placeName} • ड्रॉप: ${widget.destination.placeName}',
+          rideId: newRide.id,
+          pickupAddress: widget.pickup.placeName,
+          destinationAddress: widget.destination.placeName,
+          pickupDistance: '0.8 km',
+          dropDistance: '${_roadRoute?.distanceKm.toStringAsFixed(1) ?? '3.5'} km',
+          fare: fare,
+        );
+        notifService.showNotificationForModel(notif, userRole: UserRole.driver, isMr: isMr);
+      } catch (_) {}
 
       if (mounted) {
         context.pushReplacement('/customer/searching');
