@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -296,7 +297,7 @@ class LocalNotificationService {
       styleInformation: BigTextStyleInformation(
         bigText,
         contentTitle: title,
-        summaryText: 'DharRide • $tag',
+        summaryText: tag,
         htmlFormatContent: false,
         htmlFormatContentTitle: false,
       ),
@@ -327,11 +328,11 @@ class LocalNotificationService {
         notificationDetails: details,
         payload: jsonEncode(payloadMap),
       );
+      return true;
     } catch (e) {
       debugPrint('LocalNotificationService.showNotificationForModel error: $e');
+      return false;
     }
-
-    return true;
   }
 
   /// Builds context-appropriate Android notification action buttons based on
@@ -389,14 +390,14 @@ class LocalNotificationService {
         if (role == UserRole.driver) {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'पिकअप मार्ग पहा' : 'View Pickup',
+              actionCallCustomer,
+              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallCustomer,
-              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
+              actionViewRide,
+              isMr ? 'पिकअप मार्ग पहा' : 'View Pickup',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -413,14 +414,14 @@ class LocalNotificationService {
         } else {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'राइड पहा' : 'View Ride',
+              actionCallDriver,
+              isMr ? 'चालकाला कॉल' : 'Call Driver',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallDriver,
-              isMr ? 'चालकाला कॉल' : 'Call Driver',
+              actionViewRide,
+              isMr ? 'राइड पहा' : 'View Ride',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -431,14 +432,14 @@ class LocalNotificationService {
         if (role == UserRole.driver) {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'पिकअप मार्ग' : 'View Route',
+              actionCallCustomer,
+              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallCustomer,
-              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
+              actionViewRide,
+              isMr ? 'पिकअप मार्ग' : 'View Route',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -455,14 +456,14 @@ class LocalNotificationService {
         } else {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'थेट पहा' : 'View Live',
+              actionCallDriver,
+              isMr ? 'चालकाला कॉल' : 'Call Driver',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallDriver,
-              isMr ? 'चालकाला कॉल' : 'Call Driver',
+              actionViewRide,
+              isMr ? 'थेट पहा' : 'View Live',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -473,14 +474,14 @@ class LocalNotificationService {
         if (role == UserRole.driver) {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'प्रवास सुरू करा' : 'Start Ride',
+              actionCallCustomer,
+              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallCustomer,
-              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
+              actionViewRide,
+              isMr ? 'प्रवास सुरू करा' : 'Start Ride',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -497,14 +498,14 @@ class LocalNotificationService {
         } else {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'राइड पहा' : 'View Ride',
+              actionCallDriver,
+              isMr ? 'चालकाला कॉल' : 'Call Driver',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallDriver,
-              isMr ? 'चालकाला कॉल' : 'Call Driver',
+              actionViewRide,
+              isMr ? 'राइड पहा' : 'View Ride',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -515,14 +516,14 @@ class LocalNotificationService {
         if (role == UserRole.driver) {
           return [
             AndroidNotificationAction(
-              actionViewRide,
-              isMr ? 'ड्रॉप मार्ग पहा' : 'Drop Route',
+              actionCallCustomer,
+              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
               showsUserInterface: true,
               cancelNotification: true,
             ),
             AndroidNotificationAction(
-              actionCallCustomer,
-              isMr ? 'ग्राहकाला कॉल' : 'Call Customer',
+              actionViewRide,
+              isMr ? 'ड्रॉप मार्ग पहा' : 'Drop Route',
               showsUserInterface: true,
               cancelNotification: true,
             ),
@@ -538,6 +539,12 @@ class LocalNotificationService {
           ];
         } else {
           return [
+            AndroidNotificationAction(
+              actionCallDriver,
+              isMr ? 'चालकाला कॉल' : 'Call Driver',
+              showsUserInterface: true,
+              cancelNotification: true,
+            ),
             AndroidNotificationAction(
               actionViewRide,
               isMr ? 'राइड पहा' : 'View Ride',
@@ -668,19 +675,19 @@ class LocalNotificationService {
         if (role == UserRole.driver) {
           title = isMr ? 'नवीन राइड विनंती (₹$fare)' : 'New Ride Request (₹$fare)';
           body = isMr
-              ? '$pickupDist पिकअप ($pickup) • $dropDist ड्रॉप ($drop)'
-              : '$pickupDist Pickup ($pickup) • $dropDist Drop ($drop)';
+              ? 'नवीन प्रवासी ऑटो शोधत आहे ($pickupDist)'
+              : 'New passenger requesting auto nearby ($pickupDist)';
           bigText = isMr
-              ? 'जवळपास नवीन राइड विनंती आहे!\nपिकअप: $pickup ($pickupDist)\nड्रॉप: $drop ($dropDist)\nठरलेले भाडे: ₹$fare (०% प्लॅटफॉर्म कमिशन)\nस्वीकारण्यासाठी किंवा नाकारण्यासाठी खालील बटणे दाबा.'
-              : 'New ride request nearby in Dharashiv!\nPickup: $pickup ($pickupDist)\nDrop: $drop ($dropDist)\nEstimated Fare: ₹$fare (0% Platform Fee)\nTap Accept to claim this ride.';
+              ? 'नवीन प्रवासी ऑटो शोधत आहे.\n\n💰 ठरलेले भाडे: ₹$fare (०% कमिशन)\n📍 पिकअप स्थान: $pickup ($pickupDist)\n🏁 ड्रॉप स्थान: $drop ($dropDist)\n👤 प्रवासी: $customerName'
+              : 'New passenger requesting auto nearby.\n\n💰 Agreed Fare: ₹$fare (0% Commission)\n📍 Pickup Spot: $pickup ($pickupDist)\n🏁 Destination: $drop ($dropDist)\n👤 Customer: $customerName';
         } else {
           title = isMr ? 'ऑटो शोधत आहे...' : 'Searching for Auto...';
           body = isMr
-              ? 'धाराशिवमधील जवळच्या रिक्षा चालकांशी जोडत आहे...'
-              : 'Connecting to nearby auto drivers in Dharashiv...';
+              ? 'धाराशिवमधील जवळच्या चालकांशी जोडत आहे...'
+              : 'Connecting to nearby drivers in Dharashiv...';
           bigText = isMr
-              ? 'तुमच्या प्रवासासाठी ऑटो शोधत आहे.\nपिकअप: $pickup\nड्रॉप: $drop\nअंदाजित भाडे: ₹$fare'
-              : 'Searching for auto-rickshaw drivers.\nPickup: $pickup\nDestination: $drop\nEstimated Fare: ₹$fare';
+              ? 'धाराशिवमधील जवळच्या चालकांशी जोडत आहे...\n\n📍 पिकअप स्थान: $pickup\n🏁 ड्रॉप स्थान: $drop\n💰 अंदाजित भाडे: ₹$fare'
+              : 'Connecting to nearby drivers in Dharashiv...\n\n📍 Pickup Spot: $pickup\n🏁 Destination: $drop\n💰 Estimated Fare: ₹$fare';
         }
         break;
 
@@ -689,30 +696,30 @@ class LocalNotificationService {
           title = isMr ? 'राइड स्वीकारली!' : 'Ride Accepted!';
           body = isMr ? 'ग्राहक पिकअप स्थानाकडे जा: $pickup' : 'Head to customer pickup: $pickup';
           bigText = isMr
-              ? 'तुम्ही राइड स्वीकारली आहे!\nप्रवासी: $customerName\nपिकअप स्थान: $pickup\nड्रॉप: $drop\nठरलेले भाडे: ₹$fare (१००% थेट चालक कमाई)'
-              : 'Ride accepted successfully!\nPassenger: $customerName\nPickup: $pickup\nDrop: $drop\nFare: ₹$fare (100% Direct to You)';
+              ? 'ग्राहक पिकअप स्थानाकडे निघा.\n\n👤 प्रवासी: $customerName\n📍 पिकअप स्थान: $pickup\n🏁 ड्रॉप स्थान: $drop\n💰 ठरलेले भाडे: ₹$fare (१००% थेट चालक कमाई)'
+              : 'Head to customer pickup spot.\n\n👤 Passenger: $customerName\n📍 Pickup Spot: $pickup\n🏁 Destination: $drop\n💰 Agreed Fare: ₹$fare (100% Direct Driver Share)';
         } else {
           title = isMr ? 'राइड स्वीकारली!' : 'Ride Accepted!';
-          body = isMr ? '$driverName यांनी तुमची राइड स्वीकारली ($autoNumber).' : '$driverName accepted your ride ($autoNumber).';
+          body = isMr ? '$driverName पिकअपकडे येत आहेत • $autoNumber' : '$driverName is on the way • $autoNumber';
           bigText = isMr
-              ? '$driverName यांनी तुमची राइड स्वीकारली आहे!\nऑटो क्रमांक: $autoNumber\nपिकअप: $pickup\nभाडे: ₹$fare (०% अतिरिक्त शुल्क)'
-              : '$driverName accepted your ride!\nAuto: $autoNumber\nPickup: $pickup\nAgreed Fare: ₹$fare (0% Platform Fee)';
+              ? '$driverName पिकअपकडे येत आहेत.\n\n👤 चालक: $driverName\n🚗 वाहन: $autoNumber\n📍 पिकअप स्थान: $pickup\n💰 ठरलेले भाडे: ₹$fare (०% जादा दर)'
+              : '$driverName is on the way.\n\n👤 Driver: $driverName\n🚗 Vehicle: $autoNumber\n📍 Pickup Spot: $pickup\n💰 Agreed Fare: ₹$fare (0% Surge)';
         }
         break;
 
       case NotificationType.driverArriving:
         if (role == UserRole.driver) {
-          title = isMr ? 'पिकअपकडे जात आहात' : 'Approaching Pickup';
+          title = isMr ? 'पिकअपजवळ पोहोचत आहात' : 'Approaching Pickup';
           body = isMr ? 'पिकअप अंतर: $dist • $eta' : 'Approaching pickup spot: $dist • $eta';
           bigText = isMr
-              ? 'तुम्ही पिकअप स्थानाकडे जात आहात.\nस्थान: $pickup\nअंतर: $dist • $eta\nग्राहक वाट पाहत आहे.'
-              : 'Approaching pickup spot.\nLocation: $pickup\nDistance: $dist • $eta\nCustomer is waiting.';
+              ? 'ग्राहक पिकअप स्थानावर वाट पाहत आहे.\n\n👤 प्रवासी: $customerName\n📍 पिकअप स्थान: $pickup\n📏 अंतर: $dist\n⏱️ अंदाजित वेळ: $eta'
+              : 'Customer is waiting at pickup location.\n\n👤 Passenger: $customerName\n📍 Pickup Spot: $pickup\n📏 Distance: $dist\n⏱️ ETA: $eta';
         } else {
           title = isMr ? 'चालक येत आहे' : 'Driver is Arriving';
-          body = isMr ? '$driverName पिकअपकडे येत आहेत ($dist • $eta).' : '$driverName is on the way ($dist • $eta).';
+          body = isMr ? '$driverName जवळ येत आहेत • $dist • $eta' : '$driverName is approaching • $dist • $eta';
           bigText = isMr
-              ? '$driverName पिकअप स्थानाकडे येत आहेत.\nऑटो क्रमांक: $autoNumber\nअंतर: $dist • $eta\nकृपया पिकअप स्थानावर तयार राहा.'
-              : '$driverName is approaching your location.\nAuto: $autoNumber\nDistance: $dist • $eta\nPlease be ready at $pickup.';
+              ? '$driverName पिकअप स्थानाजवळ पोहोचत आहेत.\n\n👤 चालक: $driverName\n🚗 वाहन: $autoNumber\n📏 अंतर: $dist\n⏱️ अंदाजित वेळ: $eta\n📍 पिकअप स्थान: $pickup'
+              : '$driverName is approaching your pickup spot.\n\n👤 Driver: $driverName\n🚗 Vehicle: $autoNumber\n📏 Distance: $dist\n⏱️ ETA: $eta\n📍 Pickup Spot: $pickup';
         }
         break;
 
@@ -721,14 +728,14 @@ class LocalNotificationService {
           title = isMr ? 'पिकअप स्थानावर पोहोचला!' : 'Arrived at Pickup!';
           body = isMr ? 'तुम्ही $pickup येथे पोहोचला आहात.' : 'You have arrived at $pickup.';
           bigText = isMr
-              ? 'तुम्ही ग्राहक पिकअप स्थानावर पोहोचला आहात: $pickup\nग्राहकाशी संपर्क करा किंवा थेट कॉल करा.'
-              : 'You arrived at customer pickup spot: $pickup.\nContact customer to board your auto.';
+              ? 'तुम्ही ग्राहक पिकअप स्थानावर पोहोचला आहात.\n\n👤 प्रवासी: $customerName\n📍 पिकअप स्थान: $pickup\n🏁 ड्रॉप स्थान: $drop\n💰 ठरलेले भाडे: ₹$fare'
+              : 'You have arrived at customer pickup spot.\n\n👤 Passenger: $customerName\n📍 Pickup Spot: $pickup\n🏁 Destination: $drop\n💰 Agreed Fare: ₹$fare';
         } else {
           title = isMr ? 'चालक पोहोचला!' : 'Driver Arrived!';
-          body = isMr ? '$driverName ($autoNumber) तुमच्या स्थानावर पोहोचले आहेत.' : '$driverName ($autoNumber) has arrived at your location.';
+          body = isMr ? '$driverName ($autoNumber) पिकअप स्थानावर हजर आहेत.' : '$driverName ($autoNumber) is at pickup location.';
           bigText = isMr
-              ? '$driverName ($autoNumber) तुमच्या पिकअप स्थानावर पोहोचले आहेत!\nस्थान: $pickup\nकृपया ऑटोमध्ये बसा व प्रवास सुरू करा.'
-              : '$driverName has arrived at your location!\nAuto: $autoNumber\nLocation: $pickup\nPlease proceed to board the auto.';
+              ? '$driverName पिकअप स्थानावर पोहोचले आहेत.\n\n👤 चालक: $driverName\n🚗 वाहन: $autoNumber\n📍 पिकअप स्थान: $pickup\n💰 ठरलेले भाडे: ₹$fare'
+              : '$driverName has arrived at your pickup spot.\n\n👤 Driver: $driverName\n🚗 Vehicle: $autoNumber\n📍 Pickup Spot: $pickup\n💰 Agreed Fare: ₹$fare';
         }
         break;
 
@@ -737,14 +744,14 @@ class LocalNotificationService {
           title = isMr ? 'प्रवास सुरू झाला' : 'Ride Started';
           body = isMr ? 'मार्ग: $drop कडे प्रवास सुरू.' : 'Trip in progress to $drop.';
           bigText = isMr
-              ? 'प्रवास सुरू झाला आहे!\nड्रॉप स्थान: $drop\nठरलेले भाडे: ₹$fare\nसुरक्षित वाहन चालवा.'
-              : 'Trip in progress!\nDestination: $drop\nAgreed Fare: ₹$fare\nDrive safely in Dharashiv.';
+              ? 'मार्ग: $drop कडे प्रवास सुरू. सुरक्षित प्रवास.\n\n👤 प्रवासी: $customerName\n🏁 ड्रॉप स्थान: $drop\n💰 ठरलेले भाडे: ₹$fare (१००% थेट चालक कमाई)'
+              : 'Trip in progress to $drop. Zero commission active.\n\n👤 Passenger: $customerName\n🏁 Destination: $drop\n💰 Agreed Fare: ₹$fare (100% Direct Share)';
         } else {
           title = isMr ? 'प्रवास सुरू झाला' : 'Ride Started';
-          body = isMr ? 'तुमचा प्रवास $drop कडे सुरू झाला आहे.' : 'Your ride to $drop has started.';
+          body = isMr ? 'ड्रॉप: $drop • भाडे: ₹$fare' : 'Destination: $drop • Fare: ₹$fare';
           bigText = isMr
-              ? 'तुमचा प्रवास सुरू झाला आहे!\nचालक: $driverName ($autoNumber)\nड्रॉप: $drop\nसुखकर प्रवासाच्या शुभेच्छा!'
-              : 'Your ride has started!\nDriver: $driverName ($autoNumber)\nDestination: $drop\nEnjoy your ride with DharRide!';
+              ? '$drop कडे प्रवास सुरू.\n\n👤 चालक: $driverName\n🚗 वाहन: $autoNumber\n🏁 ड्रॉप स्थान: $drop\n💰 ठरलेले भाडे: ₹$fare'
+              : 'Trip in progress to $drop.\n\n👤 Driver: $driverName\n🚗 Vehicle: $autoNumber\n🏁 Destination: $drop\n💰 Agreed Fare: ₹$fare';
         }
         break;
 
@@ -753,30 +760,30 @@ class LocalNotificationService {
           title = isMr ? 'प्रवास पूर्ण झाला 🎉' : 'Ride Completed 🎉';
           body = isMr ? 'कमाई: ₹$fare (१००% थेट • ०% कमिशन)' : 'Trip completed! Fare: ₹$fare (100% Yours)';
           bigText = isMr
-              ? 'प्रवास यशस्वीरीत्या पूर्ण झाला!\nएकूण कमाई: ₹$fare (१००% थेट चालक कमाई)\nप्लॅटफॉर्म कमिशन: ₹०.००\nअंतर: $dist'
-              : 'Trip completed successfully!\nEarnings: ₹$fare (100% Direct Driver Share)\nPlatform Fee: ₹0.00 (0% Commission)\nDistance: $dist';
+              ? 'प्रवास यशस्वीरीत्या पूर्ण झाला! उत्तम सेवेबद्दल धन्यवाद.\n\n💰 एकूण कमाई: ₹$fare (१००% थेट चालक)\n💼 प्लॅटफॉर्म फी: ₹०.०० (०% कमिशन)\n📏 एकूण अंतर: $dist\n✅ स्थिती: पूर्ण'
+              : 'Trip completed successfully! Great job delivering a safe ride.\n\n💰 Driver Earnings: ₹$fare (100% Direct Share)\n💼 Platform Fee: ₹0.00 (0% Commission)\n📏 Total Distance: $dist\n✅ Status: Completed';
         } else {
           title = isMr ? 'प्रवास पूर्ण झाला 🎉' : 'Ride Completed 🎉';
           body = isMr ? 'एकूण भाडे: ₹$fare • अंतर: $dist' : 'Trip completed! Total Fare: ₹$fare • $dist';
           bigText = isMr
-              ? 'तुमचा प्रवास यशस्वीरीत्या पूर्ण झाला आहे!\nएकूण भाडे: ₹$fare (०% अतिरिक्त शुल्क)\nअंतर: $dist\nDharRide वापरल्याबद्दल धन्यवाद!'
-              : 'Trip completed successfully!\nTotal Fare: ₹$fare (0% Platform Fee)\nDistance: $dist\nThank you for riding with DharRide!';
+              ? 'प्रवास यशस्वीरीत्या पूर्ण झाला! DharRide वापरल्याबद्दल धन्यवाद.\n\n💰 एकूण भाडे: ₹$fare (०% अतिरिक्त शुल्क)\n📏 एकूण अंतर: $dist\n✅ स्थिती: पूर्ण\n👤 चालक: $driverName'
+              : 'Trip completed successfully! Thank you for choosing DharRide.\n\n💰 Total Fare: ₹$fare (0% Platform Fee)\n📏 Total Distance: $dist\n✅ Status: Completed\n👤 Driver: $driverName';
         }
         break;
 
       case NotificationType.rideCancelled:
         if (role == UserRole.driver) {
           title = isMr ? 'प्रवास रद्द झाला' : 'Ride Cancelled';
-          body = isMr ? 'राइड $rideId रद्द झाली. कारण: $cancelReason' : 'Ride $rideId cancelled. Reason: $cancelReason';
+          body = isMr ? 'कारण: $cancelReason' : 'Reason: $cancelReason';
           bigText = isMr
-              ? 'राइड $rideId रद्द झाली आहे.\nकारण: $cancelReason\nतुम्ही नवीन राइड्स मिळवण्यासाठी ऑनलाइन आहात.'
-              : 'Ride $rideId was cancelled.\nReason: $cancelReason\nYou are online to receive new requests.';
+              ? 'राइड रद्द झाली आहे.\n\n❓ कारण: $cancelReason\n🆔 राइड आयडी: $rideId\n📍 पिकअप स्थान: $pickup\n\nतुम्ही नवीन राइड्स मिळवण्यासाठी ऑनलाइन आहात.'
+              : 'Ride has been cancelled.\n\n❓ Reason: $cancelReason\n🆔 Ride ID: $rideId\n📍 Pickup Spot: $pickup\n\nYou are online to receive new requests.';
         } else {
           title = isMr ? 'प्रवास रद्द झाला' : 'Ride Cancelled';
-          body = isMr ? 'तुमची राइड रद्द झाली. कारण: $cancelReason' : 'Your ride was cancelled. Reason: $cancelReason';
+          body = isMr ? 'कारण: $cancelReason' : 'Reason: $cancelReason';
           bigText = isMr
-              ? 'तुमची राइड रद्द करण्यात आली आहे.\nकारण: $cancelReason\nनवीन ऑटो बुक करण्यासाठी मुख्य पानावर जा.'
-              : 'Your ride has been cancelled.\nReason: $cancelReason\nTap to book another auto in Dharashiv.';
+              ? 'तुमची राइड रद्द झाली आहे.\n\n❓ कारण: $cancelReason\n🆔 राइड आयडी: $rideId\n📍 पिकअप स्थान: $pickup\n\nनवीन ऑटो बुक करण्यासाठी खाली टॅप करा.'
+              : 'Your ride has been cancelled.\n\n❓ Reason: $cancelReason\n🆔 Ride ID: $rideId\n📍 Pickup Spot: $pickup\n\nTap below to book another auto in Dharashiv.';
         }
         break;
 
@@ -784,7 +791,8 @@ class LocalNotificationService {
       case NotificationType.announcement:
         title = notification.getTitle(isMr);
         body = notification.getBody(isMr);
-        bigText = '${notification.getTitle(isMr)}\n\n${notification.getBody(isMr)}\n\nDharRide • Dharashiv Platform';
+        bigText =
+            '${notification.getTitle(isMr)}\n\n${notification.getBody(isMr)}\n\n${isMr ? "धाराशिवचे स्थानिक ऑटो नेटवर्क" : "Dharashiv's Local Auto Platform"}';
         break;
     }
 
@@ -1173,44 +1181,39 @@ class LocalNotificationService {
   Color _getNotificationColor(NotificationType type) {
     switch (type) {
       case NotificationType.newRideRequest:
-        return BrandConfig.accentYellowDark;
       case NotificationType.rideAccepted:
-        return AppColors.success;
       case NotificationType.driverArriving:
-        return AppColors.info;
       case NotificationType.driverArrived:
-        return BrandConfig.accentYellowDark;
       case NotificationType.rideStarted:
-        return const Color(0xFFE65100);
       case NotificationType.rideCompleted:
-        return AppColors.success;
-      case NotificationType.rideCancelled:
-        return AppColors.error;
       case NotificationType.announcement:
       case NotificationType.systemAlert:
-        return BrandConfig.accentYellowDark;
+        return BrandConfig.accentYellow;
+      case NotificationType.rideCancelled:
+        return AppColors.error;
     }
   }
 
   String _getNotificationTag(NotificationType type, bool isMr) {
     switch (type) {
       case NotificationType.newRideRequest:
-        return isMr ? 'नवीन विनंती' : 'NEW REQUEST';
+        return isMr ? 'नवीन विनंती • आता' : 'New Request • Now';
       case NotificationType.rideAccepted:
-        return isMr ? 'स्वीकारले' : 'RIDE ACCEPTED';
+        return isMr ? 'राइड स्वीकारली • आता' : 'Ride Accepted • Now';
       case NotificationType.driverArriving:
-        return isMr ? 'चालक येत आहे' : 'DRIVER ARRIVING';
+        return isMr ? 'चालक येत आहे • आता' : 'Driver Arriving • Now';
       case NotificationType.driverArrived:
-        return isMr ? 'चालक पोहोचला' : 'DRIVER ARRIVED';
+        return isMr ? 'चालक पोहोचला • आता' : 'Driver Arrived • Now';
       case NotificationType.rideStarted:
-        return isMr ? 'प्रवास सुरू' : 'RIDE STARTED';
+        return isMr ? 'प्रवास सुरू • आता' : 'Ride Started • Now';
       case NotificationType.rideCompleted:
-        return isMr ? 'पूर्ण झाले' : 'COMPLETED';
+        return isMr ? 'प्रवास पूर्ण • आता' : 'Trip Completed • Now';
       case NotificationType.rideCancelled:
-        return isMr ? 'रद्द झाले' : 'CANCELLED';
+        return isMr ? 'राइड रद्द • आता' : 'Ride Cancelled • Now';
       case NotificationType.announcement:
+        return isMr ? 'महत्त्वाची सूचना • आता' : 'Announcement • Now';
       case NotificationType.systemAlert:
-        return isMr ? 'सूचना' : 'ALERT';
+        return isMr ? 'प्रणाली सूचना • आता' : 'Alert • Now';
     }
   }
 
