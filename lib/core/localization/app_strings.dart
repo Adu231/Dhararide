@@ -60,8 +60,41 @@ class AppStrings {
   String get mobileNumber => isMr ? 'मोबाईल नंबर' : 'Mobile Phone Number';
   String get emailOptional => isMr ? 'ईमेल (ऐच्छिक)' : 'Email Address (Optional)';
   String get password => isMr ? 'पासवर्ड' : 'Password';
-  String get autoNumber => isMr ? 'ऑटो गाडी नंबर (उदा. MH-25-AB-1234)' : 'Auto Vehicle Number (e.g. MH-25-AB-1234)';
-  String get upiId => isMr ? 'UPI ID (उदा. driver@upi)' : 'UPI ID (e.g. driver@upi)';
+  String get autoNumber => isMr ? 'ऑटो गाडी नंबर' : 'Auto Vehicle Number';
+  String get upiId => 'UPI ID';
+  String get driverRegistrationTitle => isMr ? 'चालक नोंदणी' : 'Driver Registration';
+  String get driverRegistrationSub => isMr ? 'धाराशिव स्थानिक ०% कमिशन ऑटो नेटवर्क' : "Dharashiv's 0% Commission Auto Network";
+  String get vehicleNumberManual => isMr ? 'वाहन नोंदणी क्रमांक' : 'Vehicle Registration Number';
+  String get upiIdOptional => isMr ? 'UPI ID (ऐच्छिक)' : 'UPI ID (Optional)';
+  String get otpVerified => isMr ? 'OTP सत्यापित' : 'OTP Verified';
+  String get verifyOtp => isMr ? 'OTP सत्यापित करा' : 'Verify OTP';
+  String get enterOtpPrompt => isMr ? 'नोंदणीसाठी मोबाईल OTP प्रविष्ट करा' : 'Enter mobile OTP for verification';
+  String get otpCodeLabel => isMr ? '४-अंकी OTP कोड' : '4-digit OTP Code';
+  String get confirmOtp => isMr ? 'OTP खात्री करा' : 'Confirm OTP';
+  String get requiredDocumentsTitle => isMr ? 'आवश्यक पडताळणी कागदपत्रे (६)' : 'Required Verification Documents (6)';
+  String get camera => isMr ? 'कॅमेरा' : 'Camera';
+  String get gallery => isMr ? 'गॅलरी' : 'Gallery';
+  String get replace => isMr ? 'बदला' : 'Replace';
+  String get remove => isMr ? 'हटवा' : 'Remove';
+  String get preview => isMr ? 'पहा' : 'Preview';
+  String get uploaded => isMr ? 'अपलोड झाले' : 'Uploaded';
+  String get requiredField => isMr ? '* आवश्यक' : '* Required';
+  String get documentConsentTitle => isMr ? 'कागदपत्रे सादर करणे आणि पडताळणी संमती' : 'Document Submission & Verification Consent';
+  String get documentConsentBody => isMr
+      ? 'मी याद्वारे DharRide प्लॅटफॉर्मवर चालक ओळख पडताळणी, वाहन पडताळणी आणि सुरक्षिततेच्या कारणांसाठी माझ्याद्वारे दिलेली सर्व कागदपत्रे आणि माहिती स्वेच्छेने सादर करण्यास व शेअर करण्यास संमती देतो/देते.\n\nमी खात्री देतो/देते की माझ्याद्वारे सादर केलेली माहिती आणि कागदपत्रे अस्सल आणि अचूक आहेत. DharRide च्या गोपनीयता धोरणानुसार (Privacy Policy) त्यांच्या सुरक्षित प्रक्रिया आणि साठवणुकीस माझी संमती आहे.'
+      : 'I voluntarily agree to submit and share all the documents and information provided by me for driver identity verification, vehicle verification and safety purposes on the DharRide platform.\n\nI confirm that the information and documents submitted by me are genuine and accurate. I agree to their secure processing and storage in accordance with the DharRide Privacy Policy.';
+  String get documentConsentCheckbox => isMr
+      ? 'मी वरील माहिती वाचली व समजून घेतली असून या अटींना माझी स्वेच्छेने संमती आहे.'
+      : 'I have read and understood the above information and voluntarily agree to these terms.';
+  String get pleaseAcceptDocumentConsent => isMr
+      ? 'कृपया पुढे जाण्यासाठी कागदपत्रे सादर करण्याच्या अटी स्वीकारा.'
+      : 'Please accept the document submission and verification terms to proceed.';
+  String get submitForVerification => isMr ? 'पडताळणीसाठी सबमिट करा' : 'Submit for Verification';
+  String get submissionSuccess => isMr ? 'चालक नोंदणी आणि ६ कागदपत्रे यशस्वीरीत्या सबमिट झाली! पडताळणी प्रलंबित.' : 'Driver registration and 6 documents submitted successfully! Under admin verification.';
+  String get pleaseUploadAllDocs => isMr ? 'कृपया सर्व ६ आवश्यक कागदपत्रे अपलोड करा व कागदपत्र संमती स्वीकारा.' : 'Please upload all 6 required documents and accept document consent.';
+  String get becomeDriver => isMr ? 'धाराशिवमध्ये ऑटो चालक बना' : 'Become a DharRide Driver';
+  String get becomeDriverSubtitle => isMr ? '०% कमिशन, थेट प्रवाशांचे कॉल्स आणि दररोज थेट १००% कमाई!' : '0% platform commission, direct passenger calls & instant direct earnings!';
+  String get applyAsDriver => isMr ? 'चालक म्हणून अर्ज करा' : 'Apply as Driver';
   String get loginDemoHint => isMr ? 'लॉग इन (खालील खात्यावर टॅप करा)' : 'Quick Login (tap an account below)';
   String get demoCustomerBtn => isMr ? 'ग्राहक' : 'Customer';
   String get demoDriverBtn => isMr ? 'चालक' : 'Driver';

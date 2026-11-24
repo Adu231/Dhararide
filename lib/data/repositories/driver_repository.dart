@@ -88,17 +88,20 @@ class DriverRepositoryNotifier extends Notifier<List<DriverModel>> {
     required String phone,
     required String autoNumber,
     required String upiId,
+    DriverDocuments? documents,
   }) {
     final newDriver = DriverModel(
       id: 'drv_${DateTime.now().millisecondsSinceEpoch}',
       userId: userId,
       name: name,
       phone: phone,
-      autoNumber: autoNumber.isNotEmpty ? autoNumber : 'MH-25-XX-0000',
+      autoNumber: autoNumber.isNotEmpty ? autoNumber : 'MH-25-AB-1234',
       upiId: upiId.isNotEmpty ? upiId : 'driver@upi',
       verificationStatus: DriverVerificationStatus.pending,
+      documents: documents,
     );
-    state = [newDriver, ...state];
+    // Remove any previous pending registration for this user/phone to avoid duplicates
+    state = [newDriver, ...state.where((d) => d.userId != userId && d.phone != phone)];
     return newDriver;
   }
 }

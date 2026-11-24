@@ -74,12 +74,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         } else if (user.role == UserRole.admin) {
           return '/admin/dashboard';
         } else {
+          // Customer is allowed to access /register to upgrade to Driver role without duplicate accounts
+          if (loc == '/register') {
+            return null;
+          }
           return '/customer/home';
         }
       }
 
       // 3. Enforce Role-Based Access Restrictions
       if (user.role == UserRole.customer) {
+        // Allow customer with pending driver submission to view pending screen
+        if (loc == '/driver/pending') {
+          return null;
+        }
         if (loc.startsWith('/driver') || loc.startsWith('/admin')) {
           return '/customer/home';
         }

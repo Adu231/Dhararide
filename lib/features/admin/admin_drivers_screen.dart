@@ -58,6 +58,21 @@ class AdminDriversScreen extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text('Auto: ${driver.autoNumber} • UPI: ${driver.upiId}', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                 Text('Phone: ${driver.phone}', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                if (driver.documents != null) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary),
+                    ),
+                    child: Text(
+                      '📄 Documents: ${driver.documents!.uploadedCount}/6 Submitted (${driver.documents!.documentConsentGiven ? "Consent Verified ✓" : "Consent Pending"})',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
                 const Divider(height: 20),
                 Row(
                   children: [

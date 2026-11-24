@@ -200,6 +200,58 @@ class CustomerProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
+            // Become a Driver Opportunity Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: BrandConfig.accentYellowLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: BrandConfig.accentYellowDark),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const AutoRickshawIcon(size: 28, badgeColor: BrandConfig.accentYellow),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          strings.becomeDriver,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: BrandConfig.textPrimaryBlack),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    strings.becomeDriverSubtitle,
+                    style: const TextStyle(fontSize: 12, color: BrandConfig.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: BrandConfig.textPrimaryBlack,
+                        foregroundColor: BrandConfig.accentYellow,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () => context.push('/register'),
+                      icon: const Icon(Icons.drive_eta, size: 18),
+                      label: Text(
+                        strings.applyAsDriver,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Payment Methods & 0% Commission Policy Card
             Container(
               padding: const EdgeInsets.all(16),
