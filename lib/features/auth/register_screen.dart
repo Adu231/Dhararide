@@ -44,8 +44,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '9822012345';
-    _isPhoneOtpVerified = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initExistingSession();
     });
@@ -209,8 +207,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _showOtpVerificationDialog() {
-    final otpCtrl = TextEditingController(text: '1234');
+    final phone = _phoneController.text.trim();
     final strings = ref.read(stringsProvider);
+    if (phone.isEmpty || phone.length < 10) {
+      _showErrorSnackBar(
+        strings.isMr
+            ? 'कृपया आधी १०-अंकी मोबाईल नंबर प्रविष्ट करा'
+            : 'Please enter a valid 10-digit mobile number first',
+      );
+      return;
+    }
+
+    final otpCtrl = TextEditingController(text: '1234');
 
     showModalBottomSheet(
       context: context,
@@ -591,56 +599,59 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // 2. Mobile Phone Number (OTP Verified & Prefilled)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: _buildFieldLabel(strings.mobileNumber, isRequired: true),
-                    ),
-                    const SizedBox(width: 8),
-                    if (_isPhoneOtpVerified)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.success),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.verified, size: 13, color: AppColors.success),
-                            const SizedBox(width: 4),
-                            Text(
-                              strings.otpVerified,
-                              style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      InkWell(
-                        onTap: _showOtpVerificationDialog,
-                        child: Text(
-                          strings.verifyOtp,
-                          style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
+                // 2. Mobile Phone Number Field with Verify Button
+                _buildFieldLabel(strings.mobileNumber, isRequired: true),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  readOnly: _isPhoneOtpVerified,
+                  maxLength: 10,
+                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  onChanged: (val) {
+                    if (_isPhoneOtpVerified) {
+                      setState(() => _isPhoneOtpVerified = false);
+                    }
+                  },
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.phone_android, size: 20),
                     suffixIcon: _isPhoneOtpVerified
-                        ? const Icon(Icons.check_circle, color: AppColors.success, size: 20)
-                        : IconButton(
-                            icon: const Icon(Icons.lock_clock, color: BrandConfig.textSecondary),
-                            onPressed: _showOtpVerificationDialog,
+                        ? Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                const SizedBox(width: 4),
+                                Text(
+                                  strings.otpVerified,
+                                  style: const TextStyle(
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 6, 8, 6),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: BrandConfig.accentYellow,
+                                foregroundColor: BrandConfig.textPrimaryBlack,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: _showOtpVerificationDialog,
+                              child: Text(
+                                strings.verify,
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ),
                     hintText: isMr ? 'मोबाईल नंबर' : 'Mobile Number',
                     hintStyle: TextStyle(
@@ -650,7 +661,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     filled: true,
-                    fillColor: _isPhoneOtpVerified ? AppColors.surface : Colors.white,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
                   ),

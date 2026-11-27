@@ -32,8 +32,20 @@ void main() {
       // 1. Verify Full Name field is present
       expect(find.text('Full Name'), findsWidgets);
 
-      // 2. Verify Mobile Phone is present and OTP verified badge is displayed
+      // 2. Verify Mobile Phone field and Verify button are present
       expect(find.text('Mobile Phone Number'), findsOneWidget);
+      expect(find.text('Verify'), findsOneWidget);
+
+      // Verify entering phone and tapping Verify triggers OTP verification dialog
+      final phoneField = find.widgetWithText(TextField, '').at(1);
+      await tester.enterText(phoneField, '9822012345');
+      await tester.tap(find.text('Verify'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Verify OTP'), findsOneWidget);
+      await tester.tap(find.text('Confirm OTP'));
+      await tester.pumpAndSettle();
+
       expect(find.text('OTP Verified'), findsOneWidget);
 
       // 3. Verify Email field is completely removed

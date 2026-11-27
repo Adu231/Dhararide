@@ -68,6 +68,7 @@ class AppStrings {
   String get upiIdOptional => isMr ? 'UPI ID (ऐच्छिक)' : 'UPI ID (Optional)';
   String get otpVerified => isMr ? 'OTP सत्यापित' : 'OTP Verified';
   String get verifyOtp => isMr ? 'OTP सत्यापित करा' : 'Verify OTP';
+  String get verify => isMr ? 'सत्यापित करा' : 'Verify';
   String get enterOtpPrompt => isMr ? 'नोंदणीसाठी मोबाईल OTP प्रविष्ट करा' : 'Enter mobile OTP for verification';
   String get otpCodeLabel => isMr ? '४-अंकी OTP कोड' : '4-digit OTP Code';
   String get confirmOtp => isMr ? 'OTP खात्री करा' : 'Confirm OTP';
