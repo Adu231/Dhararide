@@ -1306,7 +1306,31 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Suggested Fare: ₹${activeRide.suggestedFare.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const Text('0% Fee', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: BrandConfig.accentYellowLight,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.people_outline, size: 13, color: BrandConfig.textPrimaryBlack),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${activeRide.passengerCount} ${activeRide.passengerCount == 1 ? strings.passengerSingular : strings.passengerPlural}',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandConfig.textPrimaryBlack),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('0% Fee', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),

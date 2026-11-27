@@ -123,6 +123,7 @@ class RideRepositoryNotifier extends Notifier<RideRepositoryState> {
     required LocationPointModel destination,
     double suggestedFare = 20.0,
     PaymentMethod paymentMethod = PaymentMethod.cash,
+    int passengerCount = 1,
   }) {
     final newId = 'RIDE-${DateTime.now().millisecondsSinceEpoch % 10000}';
     final newRide = RideModel(
@@ -137,6 +138,7 @@ class RideRepositoryNotifier extends Notifier<RideRepositoryState> {
       status: RideStatus.searching,
       paymentMethod: paymentMethod,
       paymentStatus: PaymentStatus.pending,
+      passengerCount: passengerCount,
       createdAt: 'Just now',
     );
 

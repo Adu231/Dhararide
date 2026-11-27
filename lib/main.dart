@@ -3,8 +3,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/brand/brand_config.dart';
 import 'core/router/app_router.dart';
+import 'core/services/auth_session_service.dart';
 import 'core/services/local_notification_service.dart';
 import 'core/theme/app_theme.dart';
+import 'data/demo/demo_data.dart';
+import 'data/models/enums.dart';
+import 'data/repositories/driver_repository.dart';
 import 'data/session/session_manager.dart';
 
 void main() async {
@@ -14,6 +18,26 @@ void main() async {
   LocalNotificationService().setProviderContainer(container);
   await LocalNotificationService().initialize();
   await LocalNotificationService().checkLaunchNotification();
+
+  // Restore persistent authenticated session securely from FlutterSecureStorage
+  try {
+    final sessionService = AuthSessionService();
+    final storedUser = await sessionService.getStoredUser();
+    if (storedUser != null) {
+      container.read(currentUserProvider.notifier).login(storedUser, persist: false);
+      container.read(languageProvider.notifier).setLanguage(storedUser.language);
+      if (storedUser.role == UserRole.driver) {
+        final drivers = container.read(driverRepositoryProvider);
+        final driver = drivers.firstWhere(
+          (d) => d.userId == storedUser.id || d.phone == storedUser.phone,
+          orElse: () => DemoData.demoDriver,
+        );
+        container.read(currentDriverProvider.notifier).setDriver(driver);
+      }
+    }
+  } catch (e) {
+    debugPrint('Error restoring persistent session on app launch: $e');
+  }
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);

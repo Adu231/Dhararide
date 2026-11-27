@@ -32,6 +32,37 @@ class UserRepositoryNotifier extends Notifier<List<UserModel>> {
     }
   }
 
+  /// Lookup an existing user strictly by mobile phone number without client-supplied role.
+  UserModel? getUserByPhone(String phone) {
+    final clean = phone.trim().replaceAll('+91', '').replaceAll(' ', '').replaceAll('-', '');
+    if (clean.isEmpty) return null;
+    for (final u in state) {
+      final userPhone = u.phone.trim().replaceAll('+91', '').replaceAll(' ', '').replaceAll('-', '');
+      if (userPhone == clean) {
+        return u;
+      }
+    }
+    return null;
+  }
+
+  /// Register a new customer with minimal required fields (Name + Language preference).
+  UserModel registerCustomer({
+    required String name,
+    required String phone,
+    AppLanguage language = AppLanguage.english,
+  }) {
+    final cleanPhone = phone.trim().replaceAll('+91', '').replaceAll(' ', '').replaceAll('-', '');
+    final newUser = UserModel(
+      id: 'usr_cust_${DateTime.now().millisecondsSinceEpoch}',
+      name: name.trim().isNotEmpty ? name.trim() : 'Customer',
+      phone: cleanPhone.isNotEmpty ? cleanPhone : '9800000000',
+      role: UserRole.customer,
+      language: language,
+    );
+    state = [newUser, ...state];
+    return newUser;
+  }
+
   UserModel register({
     required String name,
     required String phone,

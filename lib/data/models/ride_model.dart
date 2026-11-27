@@ -19,6 +19,7 @@ class RideModel {
   final RideStatus status;
   final PaymentMethod paymentMethod;
   final PaymentStatus paymentStatus;
+  final int passengerCount;
   final String? cancelReason;
   final int? ratingGiven;
   final String? ratingComment;
@@ -44,6 +45,7 @@ class RideModel {
     this.status = RideStatus.searching,
     this.paymentMethod = PaymentMethod.cash,
     this.paymentStatus = PaymentStatus.pending,
+    this.passengerCount = 1,
     this.cancelReason,
     this.ratingGiven,
     this.ratingComment,
@@ -70,6 +72,7 @@ class RideModel {
     RideStatus? status,
     PaymentMethod? paymentMethod,
     PaymentStatus? paymentStatus,
+    int? passengerCount,
     String? cancelReason,
     int? ratingGiven,
     String? ratingComment,
@@ -95,6 +98,7 @@ class RideModel {
       status: status ?? this.status,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      passengerCount: passengerCount ?? this.passengerCount,
       cancelReason: cancelReason ?? this.cancelReason,
       ratingGiven: ratingGiven ?? this.ratingGiven,
       ratingComment: ratingComment ?? this.ratingComment,

@@ -3,17 +3,31 @@ import '../models/enums.dart';
 import '../models/user_model.dart';
 import '../models/driver_model.dart';
 import '../../core/localization/app_strings.dart';
+import '../../core/services/auth_session_service.dart';
 
 // Current User Notifier
 class CurrentUserNotifier extends Notifier<UserModel?> {
   @override
   UserModel? build() => null;
 
-  void login(UserModel user) => state = user;
-  void logout() => state = null;
+  void login(UserModel user, {bool persist = true}) {
+    state = user;
+    if (persist) {
+      final token = 'jwt_dharride_${user.id}_${DateTime.now().millisecondsSinceEpoch}';
+      AuthSessionService().saveSession(user: user, token: token);
+    }
+  }
+
+  void logout() {
+    state = null;
+    AuthSessionService().clearSession();
+  }
+
   void updateLanguage(AppLanguage language) {
     if (state != null) {
       state = state!.copyWith(language: language);
+      final token = 'jwt_dharride_${state!.id}_${DateTime.now().millisecondsSinceEpoch}';
+      AuthSessionService().saveSession(user: state!, token: token);
     }
   }
 }

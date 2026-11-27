@@ -30,7 +30,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   final ImagePicker _imagePicker = ImagePicker();
 
-  UserRole _selectedRole = UserRole.driver;
   bool _isPhoneOtpVerified = false;
   bool _documentConsentGiven = false;
   bool _isSubmitting = false;
@@ -53,7 +52,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final existingUser = ref.read(currentUserProvider);
     if (existingUser != null) {
       setState(() {
-        _selectedRole = UserRole.driver;
         _nameController.text = existingUser.name;
         _phoneController.text = existingUser.phone;
         _isPhoneOtpVerified = true;
@@ -335,20 +333,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    // 2. Customer Registration Flow
-    if (_selectedRole == UserRole.customer) {
-      final user = existingUser ??
-          ref.read(userRepositoryProvider.notifier).register(
-                name: name,
-                phone: phone,
-                role: UserRole.customer,
-              );
-      ref.read(currentUserProvider.notifier).login(user);
-      context.go('/customer/home');
-      return;
-    }
-
-    // 3. Driver Registration Flow
+    // Driver Registration Flow
     // Vehicle Number Validation
     if (autoNumber.isEmpty || autoNumber.length < 6) {
       _showErrorSnackBar('Please enter a complete vehicle registration number (e.g. MH-25-AB-1234)');
@@ -469,7 +454,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             },
           ),
           title: Text(
-            _selectedRole == UserRole.driver ? strings.driverRegistrationTitle : strings.register,
+            strings.driverRegistrationTitle,
             style: const TextStyle(
               color: BrandConfig.textPrimaryBlack,
               fontWeight: FontWeight.bold,
@@ -547,35 +532,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ],
                     ),
                   ),
-
-                // Role Selector (Only shown if user is not already an existing customer)
-                if (existingUser == null) ...[
-                  Text(
-                    strings.selectRole,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandConfig.textPrimaryBlack),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildRoleChip(
-                          title: strings.roleCustomer,
-                          isSelected: _selectedRole == UserRole.customer,
-                          onTap: () => setState(() => _selectedRole = UserRole.customer),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildRoleChip(
-                          title: strings.roleDriver,
-                          isSelected: _selectedRole == UserRole.driver,
-                          onTap: () => setState(() => _selectedRole = UserRole.driver),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                ],
 
                 // 1. Full Name Field
                 _buildFieldLabel(strings.fullName, isRequired: true),
@@ -668,9 +624,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Driver Specific Form Fields
-                if (_selectedRole == UserRole.driver) ...[
-                  // 3. Vehicle Registration Number (Manual Entry, No MH-25 hardcoded prefix)
+                // 3. Vehicle Registration Number (Manual Entry, No MH-25 hardcoded prefix)
                   _buildFieldLabel(strings.vehicleNumberManual, isRequired: true),
                   const SizedBox(height: 6),
                   TextField(
@@ -860,13 +814,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ],
                     ),
                   ),
-                ],
 
                 const SizedBox(height: 24),
 
                 // Final Submission Button
                 PrimaryButton(
-                  text: _selectedRole == UserRole.driver ? strings.submitForVerification : strings.register,
+                  text: strings.submitForVerification,
                   onClick: _isSubmitting ? () {} : _handleSubmit,
                 ),
                 const SizedBox(height: 16),
@@ -906,37 +859,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const Text('*', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
         ],
       ],
-    );
-  }
-
-  Widget _buildRoleChip({
-    required String title,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? BrandConfig.accentYellow : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? BrandConfig.textPrimaryBlack : AppColors.border,
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-            color: BrandConfig.textPrimaryBlack,
-            fontSize: 14,
-          ),
-        ),
-      ),
     );
   }
 

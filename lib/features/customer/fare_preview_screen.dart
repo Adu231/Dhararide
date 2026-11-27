@@ -33,6 +33,7 @@ class FarePreviewScreen extends ConsumerStatefulWidget {
 
 class _FarePreviewScreenState extends ConsumerState<FarePreviewScreen> {
   PaymentMethod _selectedPayment = PaymentMethod.cash;
+  int _passengerCount = 1;
   final RoutingService _routingService = const RoutingService();
   bool _isSubmitting = false;
 
@@ -86,6 +87,7 @@ class _FarePreviewScreenState extends ConsumerState<FarePreviewScreen> {
         destination: widget.destination,
         suggestedFare: fare,
         paymentMethod: _selectedPayment,
+        passengerCount: _passengerCount,
       );
 
       // Trigger actual native driver notification for incoming booking request
@@ -97,8 +99,8 @@ class _FarePreviewScreenState extends ConsumerState<FarePreviewScreen> {
           type: NotificationType.newRideRequest,
           titleEn: 'New Ride Request',
           titleMr: 'नवीन राइड विनंती',
-          bodyEn: 'Pickup: ${widget.pickup.placeName} • Drop: ${widget.destination.placeName}',
-          bodyMr: 'पिकअप: ${widget.pickup.placeName} • ड्रॉप: ${widget.destination.placeName}',
+          bodyEn: '$_passengerCount ${_passengerCount == 1 ? 'Passenger' : 'Passengers'} • Pickup: ${widget.pickup.placeName} • Drop: ${widget.destination.placeName}',
+          bodyMr: '$_passengerCount प्रवासी • पिकअप: ${widget.pickup.placeName} • ड्रॉप: ${widget.destination.placeName}',
           rideId: newRide.id,
           pickupAddress: widget.pickup.placeName,
           destinationAddress: widget.destination.placeName,
@@ -524,7 +526,59 @@ class _FarePreviewScreenState extends ConsumerState<FarePreviewScreen> {
             ),
             const SizedBox(height: 14),
 
-            // 4. Payment Method Selector
+            // 4. Number of Passengers Selector
+            Text(
+              strings.passengersCountLabel,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [1, 2, 3, 4].map((count) {
+                final isSelected = _passengerCount == count;
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: count < 4 ? 8 : 0),
+                    child: InkWell(
+                      onTap: () => setState(() => _passengerCount = count),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primaryLight : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? BrandConfig.accentYellowDark : AppColors.border,
+                            width: isSelected ? 1.8 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              count == 1 ? Icons.person_outline : Icons.people_outline,
+                              size: 16,
+                              color: isSelected ? BrandConfig.textPrimaryBlack : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$count',
+                              style: TextStyle(
+                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                                fontSize: 14,
+                                color: isSelected ? BrandConfig.textPrimaryBlack : AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+
+            // 5. Payment Method Selector
             Text(
               strings.paymentMethod,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),

@@ -6,6 +6,7 @@ import '../../core/brand/brand_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/auto_rickshaw_icon.dart';
 import '../../core/widgets/responsive_container.dart';
+import '../../data/models/enums.dart';
 import '../../data/session/session_manager.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -36,8 +37,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 2), () {
+    Timer(const Duration(milliseconds: 1800), () {
       if (mounted) {
+        final currentUser = ref.read(currentUserProvider);
+        if (currentUser != null) {
+          // Returning user: redirect directly to their dashboard based on authenticated role
+          if (currentUser.role == UserRole.driver) {
+            final driver = ref.read(currentDriverProvider);
+            if (driver?.verificationStatus == DriverVerificationStatus.pending) {
+              context.go('/driver/pending');
+            } else {
+              context.go('/driver/home');
+            }
+          } else if (currentUser.role == UserRole.admin) {
+            context.go('/admin/dashboard');
+          } else {
+            context.go('/customer/home');
+          }
+          return;
+        }
+
         final hasOnboarded = ref.read(onboardingCompletedProvider);
         if (hasOnboarded) {
           context.go('/login');

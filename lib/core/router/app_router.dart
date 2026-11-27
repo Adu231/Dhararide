@@ -11,6 +11,7 @@ import '../../features/splash/splash_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
+import '../../features/auth/customer_register_screen.dart';
 
 import '../../features/customer/customer_shell.dart';
 import '../../features/customer/customer_home_screen.dart';
@@ -53,7 +54,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isPublicRoute = loc == '/splash' ||
           loc == '/onboarding' ||
           loc == '/login' ||
-          loc == '/register';
+          loc == '/register' ||
+          loc == '/customer-register';
 
       // 1. If not authenticated, require login for protected routes
       if (user == null) {
@@ -64,7 +66,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // 2. If authenticated user attempts to access splash/login/register, redirect to role home
-      if (loc == '/login' || loc == '/register' || loc == '/splash') {
+      if (loc == '/login' || loc == '/register' || loc == '/customer-register' || loc == '/splash') {
         if (user.role == UserRole.driver) {
           final driver = ref.read(currentDriverProvider);
           if (driver?.verificationStatus == DriverVerificationStatus.pending) {
@@ -119,6 +121,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/customer-register',
+        builder: (context, state) {
+          final phone = state.uri.queryParameters['phone'] ?? '';
+          return CustomerRegisterScreen(verifiedPhone: phone);
+        },
       ),
 
       // Customer Shell

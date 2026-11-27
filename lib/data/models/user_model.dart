@@ -46,4 +46,31 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'role': role.name,
+        'language': language.code,
+        'profileImage': profileImage,
+        'isSuspended': isSuspended,
+        'createdAt': createdAt,
+      };
+
+  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        phone: json['phone'] as String,
+        email: json['email'] as String?,
+        role: UserRole.values.firstWhere(
+          (r) => r.name == json['role'],
+          orElse: () => UserRole.customer,
+        ),
+        language: AppLanguage.fromCode(json['language'] as String? ?? 'en'),
+        profileImage: json['profileImage'] as String?,
+        isSuspended: json['isSuspended'] as bool? ?? false,
+        createdAt: json['createdAt'] as String? ?? '2026-09-25',
+      );
 }
